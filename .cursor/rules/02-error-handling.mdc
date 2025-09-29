@@ -1,0 +1,51 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# Error Handling Guide
+
+This project implements a standardized approach to error handling across all layers.
+
+## Error Utility
+The [utils/error.go](mdc:utils/error.go) provides core error handling functionality:
+- Standardizes error message formatting
+- Extracts clean error messages for API responses
+- Preserves error context for logging
+
+## Error Wrapping Pattern
+Always wrap errors with context using `errors.Wrap`:
+```go
+if err != nil {
+    return errors.Wrap(err, "[LayerName.FunctionName]: Descriptive message")
+}
+```
+
+## Layer-Specific Guidelines
+
+### Repository Layer
+- Wrap database errors with repository context
+- Include operation type in error message
+```go
+return nil, errors.Wrap(err, "[UserRepository.GetByID]: Error querying database")
+```
+
+### Service Layer
+- Wrap business logic errors
+- Include validation context
+```go
+return nil, errors.Wrap(err, "[UserService.Create]: Invalid user data")
+```
+
+### Handler Layer
+- Use [utils/error.go](mdc:utils/error.go) to format errors for API responses
+- Map internal errors to appropriate HTTP status codes
+```go
+if err != nil {
+    c.JSON(http.StatusInternalServerError, gin.H{
+        "error": utils.StandardError(err)
+    })
+    return
+}
+```
+

@@ -1,0 +1,51 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# Project Structure Guide
+
+This project follows Clean Architecture principles with clear separation of concerns. Here's how the code is organized:
+
+## Main Entry Point
+The application starts at [main.go](mdc:main.go), which initializes:
+- Environment configuration
+- Database connections
+- Logging setup
+- HTTP server with middleware
+- API routes
+
+## Core Components
+
+### Configuration
+- Configuration files are stored in [configs/](mdc:configs)
+- Environment variables are loaded using godotenv
+- Example configurations are provided in [configs.example/](mdc:configs.example)
+
+### Domain Layer
+- [domain/](mdc:domain) contains core business logic and interfaces
+- Domain models are independent of external frameworks
+- Repository interfaces define data access contracts
+
+### Features
+- [feature/](mdc:feature) contains feature-specific implementations
+- Each feature follows Clean Architecture with:
+  - Handlers (HTTP/Transport layer)
+  - Services (Use Cases/Application layer)
+  - Repositories (Data Access layer)
+
+### Database
+- [database/](mdc:database) manages database connections and migrations
+- Uses GORM as the ORM
+- PostgreSQL is the primary database
+
+### Utils
+- [utils/](mdc:utils) contains shared utility functions
+- [utils/error.go](mdc:utils/error.go) provides standardized error handling
+
+### API Structure
+- [routes/](mdc:routes) defines API endpoints
+- [middlewares/](mdc:middlewares) contains HTTP middleware
+- [request/](mdc:request) and [response/](mdc:response) contain DTOs
+- API versioning is implemented (e.g., /v1)
+

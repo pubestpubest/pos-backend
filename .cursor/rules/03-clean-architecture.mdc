@@ -1,0 +1,67 @@
+---
+description: 
+globs: 
+alwaysApply: true
+---
+# Clean Architecture Guide
+
+This project strictly follows Clean Architecture principles to ensure maintainability and testability.
+
+## Layer Separation
+
+### Domain Layer ([domain/](mdc:domain))
+- Contains business logic and interfaces
+- Independent of external frameworks
+- Defines repository interfaces
+- Contains core domain models
+
+### Application Layer ([feature/](mdc:feature))
+- Implements use cases
+- Orchestrates domain objects
+- Contains business rules specific to application
+- Depends only on the domain layer
+
+### Interface Adapters
+- HTTP handlers in feature modules
+- Repository implementations
+- DTOs in [request/](mdc:request) and [response/](mdc:response)
+- Converts data between layers
+
+### Infrastructure Layer
+- Database configuration in [database/](mdc:database)
+- External services integration
+- Framework configuration
+- Middleware implementation
+
+## Dependency Rule
+- Inner layers know nothing about outer layers
+- Dependencies point inward
+- Domain models don't depend on database models
+- Use interfaces for dependency inversion
+
+## Feature Organization
+Each feature should be organized as:
+```
+feature/
+└── user/
+    ├── handler.go     # HTTP handlers
+    ├── service.go     # Business logic
+    └── repository.go  # Data access
+```
+
+## Interface Naming Convention
+- Repository interfaces in domain layer
+- Implementation in feature or infrastructure layer
+- Example:
+```go
+// Domain Layer
+type UserRepository interface {
+    GetByID(id string) (*User, error)
+}
+
+// Feature Layer
+type userRepository struct {
+    db *gorm.DB
+}
+```
+
