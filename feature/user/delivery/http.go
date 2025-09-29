@@ -2,12 +2,11 @@ package delivery
 
 import (
 	"net/http"
-	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
-	"github.com/pubestpubest/go-clean-arch-template/domain"
-	"github.com/pubestpubest/go-clean-arch-template/utils"
+	"github.com/pubestpubest/pos-backend/domain"
+	"github.com/pubestpubest/pos-backend/utils"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -19,21 +18,12 @@ func NewUserHandler(userUsecase domain.UserUsecase) *userHandler {
 	return &userHandler{userUsecase: userUsecase}
 }
 
-func (h *userHandler) GetUser(c *gin.Context) {
-	id := c.Param("id")
-	idUint, err := strconv.ParseUint(id, 10, 32)
+func (h *userHandler) GetAllUsers(c *gin.Context) {
+	user, err := h.userUsecase.GetAllUsers()
 	if err != nil {
-		err = errors.Wrap(err, "[UserHandler.GetUser]: Error parsing id")
-		c.JSON(http.StatusBadRequest, gin.H{"error": utils.StandardError(err)})
+		err = errors.Wrap(err, "[UserHandler.GetAllUsers]: Error getting user")
 		log.Warn(err)
-		return
-	}
-	user, err := h.userUsecase.GetUser(uint32(idUint))
-	if err != nil {
-		err = errors.Wrap(err, "[UserHandler.GetUser]: Error getting user")
 		c.JSON(http.StatusInternalServerError, gin.H{"error": utils.StandardError(err)})
-		log.Warn(err)
-		return
 	}
 	c.JSON(http.StatusOK, user)
 }

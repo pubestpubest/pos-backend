@@ -2,10 +2,10 @@ package routes
 
 import (
 	"github.com/gin-gonic/gin"
-	"github.com/pubestpubest/go-clean-arch-template/database"
-	userHandler "github.com/pubestpubest/go-clean-arch-template/feature/user/delivery"
-	userRepository "github.com/pubestpubest/go-clean-arch-template/feature/user/repository"
-	userUsecase "github.com/pubestpubest/go-clean-arch-template/feature/user/usecase"
+	"github.com/pubestpubest/pos-backend/database"
+	userHandler "github.com/pubestpubest/pos-backend/feature/user/delivery"
+	userRepository "github.com/pubestpubest/pos-backend/feature/user/repository"
+	userUsecase "github.com/pubestpubest/pos-backend/feature/user/usecase"
 )
 
 func UserRoutes(v1 *gin.RouterGroup) {
@@ -16,5 +16,5 @@ func UserRoutes(v1 *gin.RouterGroup) {
 
 	userRoutes := v1.Group("/users")
 
-	userRoutes.GET("/:id", userHandler.GetUser)
+	userRoutes.GET("/", userHandler.GetAllUsers)
 }

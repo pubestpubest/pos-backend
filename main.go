@@ -1,15 +1,17 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 	"os"
 
 	"github.com/gin-gonic/gin"
 	"github.com/joho/godotenv"
-	"github.com/pubestpubest/go-clean-arch-template/database"
-	"github.com/pubestpubest/go-clean-arch-template/middlewares"
-	"github.com/pubestpubest/go-clean-arch-template/routes"
+	"github.com/pubestpubest/pos-backend/database"
+	"github.com/pubestpubest/pos-backend/middlewares"
+	"github.com/pubestpubest/pos-backend/routes"
+	"github.com/pubestpubest/pos-backend/seed"
 	log "github.com/sirupsen/logrus"
 )
 
@@ -44,6 +46,14 @@ func init() {
 	if err := database.ConnectDB(runEnv); err != nil {
 		log.Fatal("[init]: Connect database PG error: ", err.Error())
 	}
+
+	seedRunner := seed.Runner{
+		DB:  database.DB,
+		Env: runEnv,
+	}
+	if err := seedRunner.Run(context.Background()); err != nil {
+		log.Fatal("[init]: Seed database error: ", err.Error())
+	}
 }
 
 func main() {
@@ -72,6 +82,7 @@ func main() {
 
 	v1 := app.Group("/v1")
 	routes.UserRoutes(v1)
-
+	routes.MenuItemRoutes(v1)
+	routes.TableRoutes(v1)
 	app.Run(":8080")
 }

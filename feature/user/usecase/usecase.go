@@ -2,9 +2,8 @@ package usecase
 
 import (
 	"github.com/pkg/errors"
-	"github.com/pubestpubest/go-clean-arch-template/constant"
-	"github.com/pubestpubest/go-clean-arch-template/domain"
-	"github.com/pubestpubest/go-clean-arch-template/response"
+	"github.com/pubestpubest/pos-backend/domain"
+	"github.com/pubestpubest/pos-backend/response"
 )
 
 type userUsecase struct {
@@ -15,22 +14,23 @@ func NewUserUsecase(userRepository domain.UserRepository) domain.UserUsecase {
 	return &userUsecase{userRepository: userRepository}
 }
 
-func (u *userUsecase) GetUser(id uint32) (*response.UserResponse, error) {
-	user, err := u.userRepository.GetUser(id)
+func (u *userUsecase) GetAllUsers() ([]*response.UserResponse, error) {
+	users, err := u.userRepository.GetAllUsers()
 	if err != nil {
 		err = errors.Wrap(err, "[UserUsecase.GetUser]: Error getting user")
 		return nil, err
 	}
-
-	if user == nil {
-		err = errors.New(constant.UserNotFound)
-		return nil, err
+	userResponses := make([]*response.UserResponse, len(users))
+	for i, user := range users {
+		userResponses[i] = &response.UserResponse{
+			ID:       user.ID,
+			Username: user.Username,
+			FullName: user.FullName,
+			Email:    user.Email,
+			Phone:    user.Phone,
+			Status:   user.Status,
+		}
 	}
 
-	return &response.UserResponse{
-		ID:        uint32(user.ID),
-		Firstname: user.Firstname,
-		Lastname:  user.Lastname,
-		Age:       user.Age,
-	}, nil
+	return userResponses, nil
 }

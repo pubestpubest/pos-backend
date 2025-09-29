@@ -2,8 +2,8 @@ package repository
 
 import (
 	"github.com/pkg/errors"
-	"github.com/pubestpubest/go-clean-arch-template/domain"
-	"github.com/pubestpubest/go-clean-arch-template/models"
+	"github.com/pubestpubest/pos-backend/domain"
+	"github.com/pubestpubest/pos-backend/models"
 	"gorm.io/gorm"
 )
 
@@ -15,12 +15,12 @@ func NewUserRepository(db *gorm.DB) domain.UserRepository {
 	return &userRepository{db: db}
 }
 
-func (r *userRepository) GetUser(id uint32) (*models.User, error) {
-	var user models.User
-	if err := r.db.Where("id = ?", id).First(&user).Error; err != nil {
-		err = errors.Wrap(err, "[UserRepository.GetUser]: Error getting user")
+func (r *userRepository) GetAllUsers() ([]*models.User, error) {
+	var users []*models.User
+	if err := r.db.Find(&users).Error; err != nil {
+		err = errors.Wrap(err, "[UserRepository.GetAllUsers]: Error getting user")
 		return nil, err
 	}
 
-	return &user, nil
+	return users, nil
 }

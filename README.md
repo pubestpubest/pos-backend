@@ -47,8 +47,8 @@ A production-ready template for building scalable and maintainable Go applicatio
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/pubestpubest/go-clean-arch-template.git
-   cd go-clean-arch-template
+   git clone https://github.com/pubestpubest/pos-backend.git
+   cd pos-backend
    ```
 
 2. Copy example configuration:

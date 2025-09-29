@@ -1,14 +1,14 @@
 package domain
 
 import (
-	"github.com/pubestpubest/go-clean-arch-template/models"
-	"github.com/pubestpubest/go-clean-arch-template/response"
+	"github.com/pubestpubest/pos-backend/models"
+	"github.com/pubestpubest/pos-backend/response"
 )
 
 type UserUsecase interface {
-	GetUser(id uint32) (*response.UserResponse, error)
+	GetAllUsers() ([]*response.UserResponse, error)
 }
 
 type UserRepository interface {
-	GetUser(id uint32) (*models.User, error)
+	GetAllUsers() ([]*models.User, error)
 }
