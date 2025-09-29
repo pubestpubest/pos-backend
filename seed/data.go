@@ -48,6 +48,65 @@ var SeedAdminUser = SeedAdmin{
 	Status:       "active",
 }
 
+// Additional users with roles
+type SeedUser struct {
+	Username     string
+	Email        string
+	PasswordHash string
+	FullName     string
+	Phone        string
+	Status       string
+	RoleName     string // Role to assign to this user
+}
+
+var SeedUsers = []SeedUser{
+	{
+		Username:     "manager1",
+		Email:        "manager1@example.com",
+		PasswordHash: "$2a$12$REPLACE_ME_BCRYPT",
+		FullName:     "สมชาย จิตดี",
+		Phone:        "081-234-5678",
+		Status:       "active",
+		RoleName:     "manager",
+	},
+	{
+		Username:     "cashier1",
+		Email:        "cashier1@example.com",
+		PasswordHash: "$2a$12$REPLACE_ME_BCRYPT",
+		FullName:     "สมหญิง ใจดี",
+		Phone:        "082-345-6789",
+		Status:       "active",
+		RoleName:     "cashier",
+	},
+	{
+		Username:     "waiter1",
+		Email:        "waiter1@example.com",
+		PasswordHash: "$2a$12$REPLACE_ME_BCRYPT",
+		FullName:     "สมศักดิ์ ทำงาน",
+		Phone:        "083-456-7890",
+		Status:       "active",
+		RoleName:     "waiter",
+	},
+	{
+		Username:     "waiter2",
+		Email:        "waiter2@example.com",
+		PasswordHash: "$2a$12$REPLACE_ME_BCRYPT",
+		FullName:     "สมพร รักงาน",
+		Phone:        "084-567-8901",
+		Status:       "active",
+		RoleName:     "waiter",
+	},
+	{
+		Username:     "kitchen1",
+		Email:        "kitchen1@example.com",
+		PasswordHash: "$2a$12$REPLACE_ME_BCRYPT",
+		FullName:     "สมคิด ทำอาหาร",
+		Phone:        "085-678-9012",
+		Status:       "active",
+		RoleName:     "kitchen",
+	},
+}
+
 // Venue layout
 var SeedAreas = []string{"Main Hall", "Patio", "Bar"}
 

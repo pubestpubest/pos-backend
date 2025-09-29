@@ -34,6 +34,14 @@ func (r *Runner) Run(ctx context.Context) error {
 			err = errors.Wrap(err, "[seed.Run]: Error seeding admin user roles")
 			return err
 		}
+		if err := seedUsers(tx); err != nil {
+			err = errors.Wrap(err, "[seed.Run]: Error seeding users")
+			return err
+		}
+		if err := seedUserRoles(tx); err != nil {
+			err = errors.Wrap(err, "[seed.Run]: Error seeding user roles")
+			return err
+		}
 
 		if r.Env == "development" {
 			if err := seedAreas(tx); err != nil {

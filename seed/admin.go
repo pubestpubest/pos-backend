@@ -44,3 +44,49 @@ func seedAdminUserRoles(tx *gorm.DB) error {
 		DoNothing: true,
 	}).Create(&ur).Error
 }
+
+func seedUsers(tx *gorm.DB) error {
+	for _, su := range SeedUsers {
+		var count int64
+		if err := tx.Model(&models.User{}).Where("username = ?", su.Username).Count(&count).Error; err != nil {
+			return err
+		}
+		if count > 0 {
+			continue // User already exists
+		}
+
+		u := models.User{
+			Username:     su.Username,
+			PasswordHash: su.PasswordHash,
+			FullName:     ptr(su.FullName),
+			Email:        &su.Email,
+			Phone:        &su.Phone,
+			Status:       ptr(su.Status),
+		}
+		if err := tx.Create(&u).Error; err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func seedUserRoles(tx *gorm.DB) error {
+	for _, su := range SeedUsers {
+		var u models.User
+		if err := tx.Where("username = ?", su.Username).First(&u).Error; err != nil {
+			return err
+		}
+		var role models.Role
+		if err := tx.Where("name = ?", su.RoleName).First(&role).Error; err != nil {
+			return err
+		}
+		ur := models.UserRole{UserID: u.ID, RoleID: role.ID}
+		if err := tx.Clauses(clause.OnConflict{
+			Columns:   []clause.Column{{Name: "user_id"}, {Name: "role_id"}},
+			DoNothing: true,
+		}).Create(&ur).Error; err != nil {
+			return err
+		}
+	}
+	return nil
+}
