@@ -43,3 +43,15 @@ func DerefInt(p *int) int {
 	}
 	return *p
 }
+
+// Helper functions for creating pointers
+
+// Ptr creates a pointer to a value
+func Ptr[T any](v T) *T {
+	return &v
+}
+
+// PtrI64 creates a pointer to an int64 value
+func PtrI64(v int64) *int64 {
+	return &v
+}

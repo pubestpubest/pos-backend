@@ -47,13 +47,17 @@ func init() {
 		log.Fatal("[init]: Connect database PG error: ", err.Error())
 	}
 
-	seedRunner := seed.Runner{
-		DB:  database.DB,
-		Env: runEnv,
+	isSeed := os.Getenv("SEED_DB")
+	if isSeed == "true" {
+		seedRunner := seed.Runner{
+			DB:  database.DB,
+			Env: runEnv,
+		}
+		if err := seedRunner.Run(context.Background()); err != nil {
+			log.Fatal("[init]: Seed database error: ", err.Error())
+		}
 	}
-	if err := seedRunner.Run(context.Background()); err != nil {
-		log.Fatal("[init]: Seed database error: ", err.Error())
-	}
+
 }
 
 func main() {
@@ -81,6 +85,14 @@ func main() {
 	})
 
 	v1 := app.Group("/v1")
+	routes.AuthRoutes(v1)
+	routes.CategoryRoutes(v1)
+	routes.AreaRoutes(v1)
+	routes.ModifierRoutes(v1)
+	routes.OrderRoutes(v1)
+	routes.PaymentRoutes(v1)
+	routes.RoleRoutes(v1)
+	routes.PermissionRoutes(v1)
 	routes.UserRoutes(v1)
 	routes.MenuItemRoutes(v1)
 	routes.TableRoutes(v1)

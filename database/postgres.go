@@ -40,6 +40,7 @@ func ConnectDB(runEnv string) (err error) {
 		&models.Payment{},
 		&models.RolePermission{},
 		&models.UserRole{},
+		&models.Session{},
 	)
 	log.Info("[database]: Migrated database")
 
