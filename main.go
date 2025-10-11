@@ -48,6 +48,10 @@ func init() {
 	}
 
 	isSeed := os.Getenv("SEED_DB")
+	if isSeed == "" {
+		isSeed = "false"
+	}
+	log.Info("[init]: Seed database: ", isSeed)
 	if isSeed == "true" {
 		seedRunner := seed.Runner{
 			DB:  database.DB,
