@@ -63,7 +63,7 @@ A production-ready template for building scalable and maintainable Go applicatio
 4. Start the PostgreSQL database using Docker Compose:
 
    ```bash
-   docker compose up -d --env-file configs/.env
+   docker compose --env-file configs/.env up -d
    ```
 
 5. Install dependencies:

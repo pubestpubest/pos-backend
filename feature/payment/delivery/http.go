@@ -49,7 +49,7 @@ func (h *paymentHandler) GetPaymentByID(c *gin.Context) {
 }
 
 func (h *paymentHandler) GetPaymentsByOrder(c *gin.Context) {
-	orderID, err := uuid.Parse(c.Param("order_id"))
+	orderID, err := uuid.Parse(c.Param("id"))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid order ID"})
 		return

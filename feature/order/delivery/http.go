@@ -49,7 +49,7 @@ func (h *orderHandler) GetOrderByID(c *gin.Context) {
 }
 
 func (h *orderHandler) GetOrdersByTable(c *gin.Context) {
-	tableID, err := uuid.Parse(c.Param("table_id"))
+	tableID, err := uuid.Parse(c.Param("id"))
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid table ID"})
 		return

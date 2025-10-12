@@ -24,7 +24,7 @@ func PaymentRoutes(v1 *gin.RouterGroup) {
 	}
 
 	// Order-specific payment routes
-	orderPaymentRoutes := v1.Group("/orders/:order_id/payments")
+	orderPaymentRoutes := v1.Group("/orders/:id/payments")
 	orderPaymentRoutes.Use(middlewares.AuthMiddleware())
 	{
 		orderPaymentRoutes.GET("", paymentHandler.GetPaymentsByOrder)
