@@ -29,7 +29,7 @@ func OrderRoutes(v1 *gin.RouterGroup) {
 	}
 
 	// Table-specific routes
-	tableOrderRoutes := v1.Group("/tables/:table_id/orders")
+	tableOrderRoutes := v1.Group("/tables/:id/orders")
 	tableOrderRoutes.Use(middlewares.AuthMiddleware())
 	{
 		tableOrderRoutes.GET("", orderHandler.GetOrdersByTable)
