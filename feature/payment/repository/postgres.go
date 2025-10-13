@@ -78,3 +78,28 @@ func (r *paymentRepository) GetOrderByID(id uuid.UUID) (*models.Order, error) {
 	}
 	return &order, nil
 }
+
+func (r *paymentRepository) UpdateOrder(order *models.Order) error {
+	if err := r.db.Save(order).Error; err != nil {
+		return errors.Wrap(err, "[PaymentRepository.UpdateOrder]: Error updating order")
+	}
+	return nil
+}
+
+func (r *paymentRepository) GetTableByID(id uuid.UUID) (*models.DiningTable, error) {
+	var table models.DiningTable
+	if err := r.db.Where("id = ?", id).First(&table).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			return nil, errors.Wrap(err, "[PaymentRepository.GetTableByID]: Table not found")
+		}
+		return nil, errors.Wrap(err, "[PaymentRepository.GetTableByID]: Error querying database")
+	}
+	return &table, nil
+}
+
+func (r *paymentRepository) UpdateTable(table *models.DiningTable) error {
+	if err := r.db.Save(table).Error; err != nil {
+		return errors.Wrap(err, "[PaymentRepository.UpdateTable]: Error updating table")
+	}
+	return nil
+}

@@ -38,4 +38,5 @@ type OrderRepository interface {
 	CreateOrderItemModifier(modifier *models.OrderItemModifier) error
 	DeleteOrderItemModifiers(orderItemID uuid.UUID) error
 	GetTableByID(id uuid.UUID) (*models.DiningTable, error)
+	UpdateTable(table *models.DiningTable) error
 }

@@ -1,6 +1,8 @@
 package usecase
 
 import (
+	"time"
+
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
 	"github.com/pubestpubest/pos-backend/constant"
@@ -83,6 +85,32 @@ func (u *paymentUsecase) ProcessPayment(req *request.PaymentRequest) (*response.
 
 	if err := u.paymentRepository.CreatePayment(payment); err != nil {
 		return nil, errors.Wrap(err, "[PaymentUsecase.ProcessPayment]: Error processing payment")
+	}
+
+	// Calculate new total paid
+	newTotalPaid := totalPaid + req.AmountBaht
+
+	// If order is fully paid, close the order and free the table
+	if newTotalPaid >= orderTotal {
+		// Close the order
+		order.Status = utils.Ptr(constant.OrderStatusPaid)
+		order.ClosedAt = utils.Ptr(time.Now())
+		if err := u.paymentRepository.UpdateOrder(order); err != nil {
+			return nil, errors.Wrap(err, "[PaymentUsecase.ProcessPayment]: Error closing order")
+		}
+
+		// Free the table if order has a table
+		if order.TableID != nil {
+			table, err := u.paymentRepository.GetTableByID(*order.TableID)
+			if err != nil {
+				return nil, errors.Wrap(err, "[PaymentUsecase.ProcessPayment]: Error getting table")
+			}
+
+			table.Status = utils.Ptr(constant.TableStatusFree)
+			if err := u.paymentRepository.UpdateTable(table); err != nil {
+				return nil, errors.Wrap(err, "[PaymentUsecase.ProcessPayment]: Error freeing table")
+			}
+		}
 	}
 
 	// Reload payment with order

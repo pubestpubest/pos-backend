@@ -154,3 +154,10 @@ func (r *orderRepository) GetTableByID(id uuid.UUID) (*models.DiningTable, error
 	}
 	return &table, nil
 }
+
+func (r *orderRepository) UpdateTable(table *models.DiningTable) error {
+	if err := r.db.Save(table).Error; err != nil {
+		return errors.Wrap(err, "[OrderRepository.UpdateTable]: Error updating table")
+	}
+	return nil
+}

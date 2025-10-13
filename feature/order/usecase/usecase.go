@@ -59,7 +59,7 @@ func (u *orderUsecase) GetOpenOrders() ([]*response.OrderResponse, error) {
 
 func (u *orderUsecase) CreateOrder(req *request.OrderCreateRequest) (*response.OrderResponse, error) {
 	// Validate table exists
-	_, err := u.orderRepository.GetTableByID(req.TableID)
+	table, err := u.orderRepository.GetTableByID(req.TableID)
 	if err != nil {
 		return nil, errors.Wrap(err, "[OrderUsecase.CreateOrder]: Invalid table ID")
 	}
@@ -77,6 +77,12 @@ func (u *orderUsecase) CreateOrder(req *request.OrderCreateRequest) (*response.O
 
 	if err := u.orderRepository.CreateOrder(order); err != nil {
 		return nil, errors.Wrap(err, "[OrderUsecase.CreateOrder]: Error creating order")
+	}
+
+	// Update table status to occupied
+	table.Status = utils.Ptr(constant.TableStatusOccupied)
+	if err := u.orderRepository.UpdateTable(table); err != nil {
+		return nil, errors.Wrap(err, "[OrderUsecase.CreateOrder]: Error updating table status")
 	}
 
 	// Get order with items

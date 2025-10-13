@@ -24,4 +24,7 @@ type PaymentRepository interface {
 	UpdatePayment(payment *models.Payment) error
 	GetTotalPaidForOrder(orderID uuid.UUID) (int64, error)
 	GetOrderByID(id uuid.UUID) (*models.Order, error)
+	UpdateOrder(order *models.Order) error
+	GetTableByID(id uuid.UUID) (*models.DiningTable, error)
+	UpdateTable(table *models.DiningTable) error
 }
