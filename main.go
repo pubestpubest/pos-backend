@@ -31,8 +31,15 @@ func init() {
 		runEnv = "development"
 	}
 
-	if err := godotenv.Load("configs/.env"); err != nil {
-		log.Fatal("[init]: Error loading .env file: ", err)
+	deployEnv := os.Getenv("DEPLOY_ENV")
+	if deployEnv == "" {
+		deployEnv = "local"
+	}
+
+	if deployEnv == "local" {
+		if err := godotenv.Load("configs/.env"); err != nil {
+			log.Fatal("[init]: Error loading .env file: ", err)
+		}
 	}
 
 	if runEnv == "development" {

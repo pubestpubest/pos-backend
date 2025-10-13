@@ -14,13 +14,19 @@ func ModifierRoutes(v1 *gin.RouterGroup) {
 	modifierUsecase := modifierUsecase.NewModifierUsecase(modifierRepository)
 	modifierHandler := modifierHandler.NewModifierHandler(modifierUsecase)
 
-	modifierRoutes := v1.Group("/modifiers")
-	modifierRoutes.Use(middlewares.AuthMiddleware())
+	// Public routes for customers
+	modifierPublicRoutes := v1.Group("/modifiers")
 	{
-		modifierRoutes.GET("", modifierHandler.GetAllModifiers)
-		modifierRoutes.GET("/:id", modifierHandler.GetModifierByID)
-		modifierRoutes.POST("", modifierHandler.CreateModifier)
-		modifierRoutes.PUT("/:id", modifierHandler.UpdateModifier)
-		modifierRoutes.DELETE("/:id", modifierHandler.DeleteModifier)
+		modifierPublicRoutes.GET("", modifierHandler.GetAllModifiers)
+		modifierPublicRoutes.GET("/:id", modifierHandler.GetModifierByID)
+	}
+
+	// Protected routes for staff/admin
+	modifierProtectedRoutes := v1.Group("/modifiers")
+	modifierProtectedRoutes.Use(middlewares.AuthMiddleware())
+	{
+		modifierProtectedRoutes.POST("", modifierHandler.CreateModifier)
+		modifierProtectedRoutes.PUT("/:id", modifierHandler.UpdateModifier)
+		modifierProtectedRoutes.DELETE("/:id", modifierHandler.DeleteModifier)
 	}
 }

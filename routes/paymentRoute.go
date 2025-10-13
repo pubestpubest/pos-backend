@@ -14,19 +14,24 @@ func PaymentRoutes(v1 *gin.RouterGroup) {
 	paymentUsecase := paymentUsecase.NewPaymentUsecase(paymentRepository)
 	paymentHandler := paymentHandler.NewPaymentHandler(paymentUsecase)
 
-	paymentRoutes := v1.Group("/payments")
-	paymentRoutes.Use(middlewares.AuthMiddleware())
+	// Public routes for customers
+	paymentPublicRoutes := v1.Group("/payments")
 	{
-		paymentRoutes.GET("", paymentHandler.GetAllPayments)
-		paymentRoutes.GET("/:id", paymentHandler.GetPaymentByID)
-		paymentRoutes.POST("", paymentHandler.ProcessPayment)
-		paymentRoutes.GET("/methods", paymentHandler.GetPaymentMethods)
+		paymentPublicRoutes.POST("", paymentHandler.ProcessPayment)
+		paymentPublicRoutes.GET("/methods", paymentHandler.GetPaymentMethods)
 	}
 
-	// Order-specific payment routes
-	orderPaymentRoutes := v1.Group("/orders/:id/payments")
-	orderPaymentRoutes.Use(middlewares.AuthMiddleware())
+	// Protected routes for staff/admin
+	paymentProtectedRoutes := v1.Group("/payments")
+	paymentProtectedRoutes.Use(middlewares.AuthMiddleware())
 	{
-		orderPaymentRoutes.GET("", paymentHandler.GetPaymentsByOrder)
+		paymentProtectedRoutes.GET("", paymentHandler.GetAllPayments)
+		paymentProtectedRoutes.GET("/:id", paymentHandler.GetPaymentByID)
+	}
+
+	// Order-specific payment routes (public for customers to view their order payments)
+	orderPaymentPublicRoutes := v1.Group("/orders/:id/payments")
+	{
+		orderPaymentPublicRoutes.GET("", paymentHandler.GetPaymentsByOrder)
 	}
 }

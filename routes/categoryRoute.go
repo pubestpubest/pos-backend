@@ -14,13 +14,19 @@ func CategoryRoutes(v1 *gin.RouterGroup) {
 	categoryUsecase := categoryUsecase.NewCategoryUsecase(categoryRepository)
 	categoryHandler := categoryHandler.NewCategoryHandler(categoryUsecase)
 
-	categoryRoutes := v1.Group("/categories")
-	categoryRoutes.Use(middlewares.AuthMiddleware())
+	// Public routes for customers
+	categoryPublicRoutes := v1.Group("/categories")
 	{
-		categoryRoutes.GET("", categoryHandler.GetAllCategories)
-		categoryRoutes.GET("/:id", categoryHandler.GetCategoryByID)
-		categoryRoutes.POST("", categoryHandler.CreateCategory)
-		categoryRoutes.PUT("/:id", categoryHandler.UpdateCategory)
-		categoryRoutes.DELETE("/:id", categoryHandler.DeleteCategory)
+		categoryPublicRoutes.GET("", categoryHandler.GetAllCategories)
+		categoryPublicRoutes.GET("/:id", categoryHandler.GetCategoryByID)
+	}
+
+	// Protected routes for staff/admin
+	categoryProtectedRoutes := v1.Group("/categories")
+	categoryProtectedRoutes.Use(middlewares.AuthMiddleware())
+	{
+		categoryProtectedRoutes.POST("", categoryHandler.CreateCategory)
+		categoryProtectedRoutes.PUT("/:id", categoryHandler.UpdateCategory)
+		categoryProtectedRoutes.DELETE("/:id", categoryHandler.DeleteCategory)
 	}
 }

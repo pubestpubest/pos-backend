@@ -14,14 +14,20 @@ func MenuItemRoutes(v1 *gin.RouterGroup) {
 	menuItemUsecase := menuItemUsecase.NewMenuItemUsecase(menuItemRepository)
 	menuItemHandler := menuItemHandler.NewMenuItemHandler(menuItemUsecase)
 
-	menuItemRoutes := v1.Group("/menu-items")
-	menuItemRoutes.Use(middlewares.AuthMiddleware())
+	// Public routes for customers
+	menuItemPublicRoutes := v1.Group("/menu-items")
 	{
-		menuItemRoutes.GET("", menuItemHandler.GetAllMenuItems)
-		menuItemRoutes.GET("/modifiers", menuItemHandler.GetAvailableModifiers)
-		menuItemRoutes.GET("/:id", menuItemHandler.GetMenuItemByID)
-		menuItemRoutes.POST("", menuItemHandler.CreateMenuItem)
-		menuItemRoutes.PUT("/:id", menuItemHandler.UpdateMenuItem)
-		menuItemRoutes.DELETE("/:id", menuItemHandler.DeleteMenuItem)
+		menuItemPublicRoutes.GET("", menuItemHandler.GetAllMenuItems)
+		menuItemPublicRoutes.GET("/modifiers", menuItemHandler.GetAvailableModifiers)
+		menuItemPublicRoutes.GET("/:id", menuItemHandler.GetMenuItemByID)
+	}
+
+	// Protected routes for staff/admin
+	menuItemProtectedRoutes := v1.Group("/menu-items")
+	menuItemProtectedRoutes.Use(middlewares.AuthMiddleware())
+	{
+		menuItemProtectedRoutes.POST("", menuItemHandler.CreateMenuItem)
+		menuItemProtectedRoutes.PUT("/:id", menuItemHandler.UpdateMenuItem)
+		menuItemProtectedRoutes.DELETE("/:id", menuItemHandler.DeleteMenuItem)
 	}
 }
