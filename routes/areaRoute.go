@@ -18,6 +18,7 @@ func AreaRoutes(v1 *gin.RouterGroup) {
 	areaRoutes.Use(middlewares.AuthMiddleware())
 	{
 		areaRoutes.GET("", areaHandler.GetAllAreas)
+		areaRoutes.GET("/with-tables", areaHandler.GetAreasWithTables)
 		areaRoutes.GET("/:id", areaHandler.GetAreaByID)
 		areaRoutes.POST("", areaHandler.CreateArea)
 		areaRoutes.PUT("/:id", areaHandler.UpdateArea)

@@ -14,6 +14,7 @@ type AreaUsecase interface {
 	CreateArea(req *request.AreaRequest) (*response.AreaResponse, error)
 	UpdateArea(id uuid.UUID, req *request.AreaRequest) (*response.AreaResponse, error)
 	DeleteArea(id uuid.UUID) error
+	GetAreasWithTables() ([]*response.AreaWithTablesResponse, error)
 }
 
 type AreaRepository interface {
@@ -22,4 +23,5 @@ type AreaRepository interface {
 	CreateArea(area *models.Area) error
 	UpdateArea(area *models.Area) error
 	DeleteArea(id uuid.UUID) error
+	GetAreasWithTables() ([]*models.Area, error)
 }

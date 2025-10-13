@@ -55,3 +55,11 @@ func (r *areaRepository) DeleteArea(id uuid.UUID) error {
 	}
 	return nil
 }
+
+func (r *areaRepository) GetAreasWithTables() ([]*models.Area, error) {
+	var areas []*models.Area
+	if err := r.db.Preload("Tables").Order("name ASC").Find(&areas).Error; err != nil {
+		return nil, errors.Wrap(err, "[AreaRepository.GetAreasWithTables]: Error querying database")
+	}
+	return areas, nil
+}

@@ -4,6 +4,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
 	"github.com/pubestpubest/pos-backend/domain"
+	"github.com/pubestpubest/pos-backend/models"
 	"github.com/pubestpubest/pos-backend/response"
 	"github.com/pubestpubest/pos-backend/utils"
 )
@@ -30,7 +31,7 @@ func (u *tableUsecase) GetAllTables() ([]*response.TableResponse, error) {
 			Seats:  utils.DerefInt(table.Seats),
 			Status: utils.DerefString(table.Status),
 			QRCode: utils.DerefString(table.QRSlug),
-			AreaID: utils.DerefUUID(table.AreaID),
+			Area:   u.buildAreaResponse(table.Area),
 		}
 	}
 
@@ -49,7 +50,7 @@ func (u *tableUsecase) GetTableByID(id uuid.UUID) (*response.TableResponse, erro
 		Seats:  utils.DerefInt(table.Seats),
 		Status: utils.DerefString(table.Status),
 		QRCode: utils.DerefString(table.QRSlug),
-		AreaID: utils.DerefUUID(table.AreaID),
+		Area:   u.buildAreaResponse(table.Area),
 	}, nil
 }
 
@@ -68,4 +69,15 @@ func (u *tableUsecase) UpdateTableStatus(id uuid.UUID, status string) error {
 	}
 
 	return nil
+}
+
+// Helper function to build area response
+func (u *tableUsecase) buildAreaResponse(area *models.Area) *response.AreaResponse {
+	if area == nil {
+		return nil
+	}
+	return &response.AreaResponse{
+		ID:   area.ID,
+		Name: utils.DerefString(area.Name),
+	}
 }

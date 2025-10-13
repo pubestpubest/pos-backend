@@ -95,3 +95,46 @@ func (u *areaUsecase) DeleteArea(id uuid.UUID) error {
 
 	return nil
 }
+
+// Helper function to build table response
+func (u *areaUsecase) buildTableResponse(table *models.DiningTable) response.TableResponse {
+	var areaResponse *response.AreaResponse
+	if table.Area != nil {
+		areaResponse = &response.AreaResponse{
+			ID:   table.Area.ID,
+			Name: utils.DerefString(table.Area.Name),
+		}
+	}
+
+	return response.TableResponse{
+		ID:     table.ID,
+		Name:   utils.DerefString(table.Name),
+		Seats:  utils.DerefInt(table.Seats),
+		Status: utils.DerefString(table.Status),
+		QRCode: utils.DerefString(table.QRSlug),
+		Area:   areaResponse,
+	}
+}
+
+func (u *areaUsecase) GetAreasWithTables() ([]*response.AreaWithTablesResponse, error) {
+	areas, err := u.areaRepository.GetAreasWithTables()
+	if err != nil {
+		return nil, errors.Wrap(err, "[AreaUsecase.GetAreasWithTables]: Error getting areas with tables")
+	}
+
+	areaResponses := make([]*response.AreaWithTablesResponse, len(areas))
+	for i, area := range areas {
+		tables := make([]response.TableResponse, len(area.Tables))
+		for j, table := range area.Tables {
+			tables[j] = u.buildTableResponse(&table)
+		}
+
+		areaResponses[i] = &response.AreaWithTablesResponse{
+			ID:     area.ID,
+			Name:   utils.DerefString(area.Name),
+			Tables: tables,
+		}
+	}
+
+	return areaResponses, nil
+}

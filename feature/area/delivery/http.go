@@ -103,3 +103,14 @@ func (h *areaHandler) DeleteArea(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, gin.H{"message": "Area deleted successfully"})
 }
+
+func (h *areaHandler) GetAreasWithTables(c *gin.Context) {
+	areas, err := h.areaUsecase.GetAreasWithTables()
+	if err != nil {
+		err = errors.Wrap(err, "[AreaHandler.GetAreasWithTables]: Error getting areas with tables")
+		log.Warn(err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": utils.StandardError(err)})
+		return
+	}
+	c.JSON(http.StatusOK, areas)
+}
