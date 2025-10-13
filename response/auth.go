@@ -6,7 +6,7 @@ import (
 
 type AuthResponse struct {
 	User        UserResponse `json:"user"`
-	Token       string       `json:"token"`
+	Token       string       // Internal field for setting cookie, not serialized
 	ExpiresAt   time.Time    `json:"expires_at"`
 	Permissions []string     `json:"permissions"`
 }

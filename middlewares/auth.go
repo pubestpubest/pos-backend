@@ -2,7 +2,6 @@ package middlewares
 
 import (
 	"net/http"
-	"strings"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -14,18 +13,12 @@ import (
 
 func AuthMiddleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
-		// Get token from Authorization header
-		authHeader := c.GetHeader("Authorization")
-		if authHeader == "" {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": "Authorization header required"})
+		// Get token from cookie
+		token, err := c.Cookie("token")
+		if err != nil {
+			c.JSON(http.StatusUnauthorized, gin.H{"error": "Authentication cookie required"})
 			c.Abort()
 			return
-		}
-
-		// Extract token (remove "Bearer " prefix)
-		token := authHeader
-		if strings.HasPrefix(authHeader, "Bearer ") {
-			token = authHeader[7:]
 		}
 
 		// Validate token
@@ -40,7 +33,7 @@ func AuthMiddleware() gin.HandlerFunc {
 		}
 
 		// Set user in context
-		c.Set("userID", user.ID)
+		c.Set("userID", user.ID.String())
 		c.Set("user", response.UserResponse{
 			ID:       user.ID,
 			Username: user.Username,

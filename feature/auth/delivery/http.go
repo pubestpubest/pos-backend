@@ -1,6 +1,7 @@
 package delivery
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -35,19 +36,25 @@ func (h *authHandler) Login(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, authResponse)
+	// Set HTTP-only cookie with the token
+	c.SetCookie("token", authResponse.Token, 24*60*60, "/", "", false, true) // 24 hours, HTTP-only, secure=false for development
+
+	// Return response without token
+	response := gin.H{
+		"user":        authResponse.User,
+		"expires_at":  authResponse.ExpiresAt,
+		"permissions": authResponse.Permissions,
+	}
+
+	c.JSON(http.StatusOK, response)
 }
 
 func (h *authHandler) Logout(c *gin.Context) {
-	token := c.GetHeader("Authorization")
-	if token == "" {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Authorization header required"})
+	// Get token from cookie
+	token, err := c.Cookie("token")
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Authentication cookie not found"})
 		return
-	}
-
-	// Remove "Bearer " prefix if present
-	if len(token) > 7 && token[:7] == "Bearer " {
-		token = token[7:]
 	}
 
 	if err := h.authUsecase.Logout(token); err != nil {
@@ -56,6 +63,9 @@ func (h *authHandler) Logout(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, gin.H{"error": utils.StandardError(err)})
 		return
 	}
+
+	// Clear the cookie
+	c.SetCookie("token", "", -1, "/", "", false, true)
 
 	c.JSON(http.StatusOK, gin.H{"message": "Logged out successfully"})
 }
@@ -88,14 +98,17 @@ func (h *authHandler) GetMe(c *gin.Context) {
 	// Get user from context (set by auth middleware)
 	user, exists := c.Get("user")
 	if !exists {
+		log.Warn("[AuthHandler.GetMe]: User not found in context")
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
 		return
 	}
-
+	fmt.Println("Get user passed")
 	// Get user permissions
 	userID := c.GetString("userID")
+	fmt.Println("userID: ", userID)
 	uuid, err := uuid.Parse(userID)
 	if err != nil {
+		log.Warn("[AuthHandler.GetMe]: Invalid user ID")
 		c.JSON(http.StatusInternalServerError, gin.H{"error": "Invalid user ID"})
 		return
 	}
