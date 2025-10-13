@@ -11,10 +11,12 @@ type TableUsecase interface {
 	GetAllTables() ([]*response.TableResponse, error)
 	GetTableByID(id uuid.UUID) (*response.TableResponse, error)
 	UpdateTableStatus(id uuid.UUID, status string) error
+	GetTablesWithOpenOrders() ([]*response.TableWithOrdersResponse, error)
 }
 
 type TableRepository interface {
 	GetAllTables() ([]*models.DiningTable, error)
 	GetTableByID(id uuid.UUID) (*models.DiningTable, error)
 	UpdateTable(table *models.DiningTable) error
+	GetTablesWithOpenOrders() ([]*models.DiningTable, error)
 }

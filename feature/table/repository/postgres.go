@@ -41,3 +41,11 @@ func (r *tableRepository) UpdateTable(table *models.DiningTable) error {
 	}
 	return nil
 }
+
+func (r *tableRepository) GetTablesWithOpenOrders() ([]*models.DiningTable, error) {
+	var tables []*models.DiningTable
+	if err := r.db.Preload("Area").Preload("Orders", "status = ?", "open").Preload("Orders.Table").Preload("Orders.Items").Preload("Orders.Items.MenuItem").Preload("Orders.Items.Modifiers").Preload("Orders.Items.Modifiers.Modifier").Where("id IN (SELECT DISTINCT table_id FROM orders WHERE status = ? AND table_id IS NOT NULL)", "open").Order("name ASC").Find(&tables).Error; err != nil {
+		return nil, errors.Wrap(err, "[TableRepository.GetTablesWithOpenOrders]: Error getting tables with open orders")
+	}
+	return tables, nil
+}

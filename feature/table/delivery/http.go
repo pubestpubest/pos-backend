@@ -69,3 +69,14 @@ func (h *tableHandler) UpdateTableStatus(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, gin.H{"message": "Table status updated successfully"})
 }
+
+func (h *tableHandler) GetTablesWithOpenOrders(c *gin.Context) {
+	tables, err := h.tableUsecase.GetTablesWithOpenOrders()
+	if err != nil {
+		err = errors.Wrap(err, "[TableHandler.GetTablesWithOpenOrders]: Error getting tables with open orders")
+		log.Warn(err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": utils.StandardError(err)})
+		return
+	}
+	c.JSON(http.StatusOK, tables)
+}

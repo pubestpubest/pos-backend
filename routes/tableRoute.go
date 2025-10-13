@@ -18,6 +18,7 @@ func TableRoutes(v1 *gin.RouterGroup) {
 	tableRoutes.Use(middlewares.AuthMiddleware())
 	{
 		tableRoutes.GET("", tableHandler.GetAllTables)
+		tableRoutes.GET("/with-open-orders", tableHandler.GetTablesWithOpenOrders)
 		tableRoutes.GET("/:id", tableHandler.GetTableByID)
 		tableRoutes.PUT("/:id/status", tableHandler.UpdateTableStatus)
 	}
