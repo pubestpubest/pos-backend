@@ -66,7 +66,7 @@ func (u *orderUsecase) CreateOrder(req *request.OrderCreateRequest) (*response.O
 
 	order := &models.Order{
 		TableID:      &req.TableID,
-		OpenedBy:     &req.OpenedBy,
+		OpenedBy:     req.OpenedBy,
 		Source:       &req.Source,
 		Status:       utils.Ptr(constant.OrderStatusOpen),
 		SubtotalBaht: utils.PtrI64(0),
@@ -350,7 +350,7 @@ func (u *orderUsecase) buildOrderResponse(order *models.Order) *response.OrderRe
 		ID:           order.ID,
 		TableID:      utils.DerefUUID(order.TableID),
 		TableName:    utils.DerefString(order.Table.Name),
-		OpenedBy:     utils.DerefUUID(order.OpenedBy),
+		OpenedBy:     order.OpenedBy,
 		Source:       utils.DerefString(order.Source),
 		Status:       utils.DerefString(order.Status),
 		SubtotalBaht: utils.DerefInt64(order.SubtotalBaht),

@@ -3,10 +3,10 @@ package request
 import "github.com/google/uuid"
 
 type OrderCreateRequest struct {
-	TableID  uuid.UUID `json:"table_id" binding:"required"`
-	OpenedBy uuid.UUID `json:"opened_by" binding:"required"`
-	Source   string    `json:"source" binding:"required,oneof=staff customer"`
-	Note     *string   `json:"note"`
+	TableID  uuid.UUID  `json:"table_id" binding:"required"`
+	OpenedBy *uuid.UUID `json:"opened_by"`
+	Source   string     `json:"source" binding:"required,oneof=staff customer"`
+	Note     *string    `json:"note"`
 }
 
 type AddOrderItemRequest struct {

@@ -18,7 +18,7 @@ func NewUserRepository(db *gorm.DB) domain.UserRepository {
 
 func (r *userRepository) GetAllUsers() ([]*models.User, error) {
 	var users []*models.User
-	if err := r.db.Order("username ASC").Find(&users).Error; err != nil {
+	if err := r.db.Preload("Roles.Permissions").Order("username ASC").Find(&users).Error; err != nil {
 		return nil, errors.Wrap(err, "[UserRepository.GetAllUsers]: Error getting users")
 	}
 	return users, nil
@@ -26,7 +26,7 @@ func (r *userRepository) GetAllUsers() ([]*models.User, error) {
 
 func (r *userRepository) GetUserByID(id uuid.UUID) (*models.User, error) {
 	var user models.User
-	if err := r.db.Where("id = ?", id).First(&user).Error; err != nil {
+	if err := r.db.Preload("Roles.Permissions").Where("id = ?", id).First(&user).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
 			return nil, errors.Wrap(err, "[UserRepository.GetUserByID]: User not found")
 		}
@@ -51,7 +51,7 @@ func (r *userRepository) UpdateUser(user *models.User) error {
 
 func (r *userRepository) GetUserWithRoles(id uuid.UUID) (*models.User, error) {
 	var user models.User
-	if err := r.db.Preload("Roles").Where("id = ?", id).First(&user).Error; err != nil {
+	if err := r.db.Preload("Roles.Permissions").Where("id = ?", id).First(&user).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
 			return nil, errors.Wrap(err, "[UserRepository.GetUserWithRoles]: User not found")
 		}

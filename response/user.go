@@ -11,4 +11,6 @@ type UserResponse struct {
 	Email    *string   `json:"email"`
 	Phone    *string   `json:"phone"`
 	Status   *string   `json:"status"`
+
+	Roles []RoleResponse `json:"roles"`
 }

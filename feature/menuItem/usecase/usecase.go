@@ -80,7 +80,7 @@ func (u *menuItemUsecase) CreateMenuItem(req *request.MenuItemRequest) (*respons
 		PriceBaht: req.PriceBaht,
 		Active:    active,
 		ImageURL:  utils.DerefString(req.ImageURL),
-		Category:  response.CategoryResponse{ID: utils.DerefUUID(req.CategoryID), Name: req.Name, DisplayOrder: 0},
+		Category:  response.CategoryResponse{ID: utils.DerefUUID(req.CategoryID), Name: "", DisplayOrder: 0},
 	}, nil
 }
 

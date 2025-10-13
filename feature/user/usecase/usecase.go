@@ -7,6 +7,7 @@ import (
 	"github.com/pubestpubest/pos-backend/models"
 	"github.com/pubestpubest/pos-backend/request"
 	"github.com/pubestpubest/pos-backend/response"
+	"github.com/pubestpubest/pos-backend/utils"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -26,14 +27,7 @@ func (u *userUsecase) GetAllUsers() ([]*response.UserResponse, error) {
 
 	userResponses := make([]*response.UserResponse, len(users))
 	for i, user := range users {
-		userResponses[i] = &response.UserResponse{
-			ID:       user.ID,
-			Username: user.Username,
-			FullName: user.FullName,
-			Email:    user.Email,
-			Phone:    user.Phone,
-			Status:   user.Status,
-		}
+		userResponses[i] = u.buildUserResponse(user)
 	}
 
 	return userResponses, nil
@@ -45,14 +39,7 @@ func (u *userUsecase) GetUserByID(id uuid.UUID) (*response.UserResponse, error) 
 		return nil, errors.Wrap(err, "[UserUsecase.GetUserByID]: Error getting user")
 	}
 
-	return &response.UserResponse{
-		ID:       user.ID,
-		Username: user.Username,
-		FullName: user.FullName,
-		Email:    user.Email,
-		Phone:    user.Phone,
-		Status:   user.Status,
-	}, nil
+	return u.buildUserResponse(user), nil
 }
 
 func (u *userUsecase) CreateUser(req *request.UserCreateRequest) (*response.UserResponse, error) {
@@ -75,14 +62,13 @@ func (u *userUsecase) CreateUser(req *request.UserCreateRequest) (*response.User
 		return nil, errors.Wrap(err, "[UserUsecase.CreateUser]: Error creating user")
 	}
 
-	return &response.UserResponse{
-		ID:       user.ID,
-		Username: user.Username,
-		FullName: user.FullName,
-		Email:    user.Email,
-		Phone:    user.Phone,
-		Status:   user.Status,
-	}, nil
+	// Get the created user with roles
+	createdUser, err := u.userRepository.GetUserByID(user.ID)
+	if err != nil {
+		return nil, errors.Wrap(err, "[UserUsecase.CreateUser]: Error retrieving created user")
+	}
+
+	return u.buildUserResponse(createdUser), nil
 }
 
 func (u *userUsecase) UpdateUser(id uuid.UUID, req *request.UserUpdateRequest) (*response.UserResponse, error) {
@@ -110,14 +96,13 @@ func (u *userUsecase) UpdateUser(id uuid.UUID, req *request.UserUpdateRequest) (
 		return nil, errors.Wrap(err, "[UserUsecase.UpdateUser]: Error updating user")
 	}
 
-	return &response.UserResponse{
-		ID:       user.ID,
-		Username: user.Username,
-		FullName: user.FullName,
-		Email:    user.Email,
-		Phone:    user.Phone,
-		Status:   user.Status,
-	}, nil
+	// Get the updated user with roles
+	updatedUser, err := u.userRepository.GetUserByID(user.ID)
+	if err != nil {
+		return nil, errors.Wrap(err, "[UserUsecase.UpdateUser]: Error retrieving updated user")
+	}
+
+	return u.buildUserResponse(updatedUser), nil
 }
 
 func (u *userUsecase) AssignRoleToUser(userID uuid.UUID, roleID int) error {
@@ -137,4 +122,38 @@ func (u *userUsecase) AssignRoleToUser(userID uuid.UUID, roleID int) error {
 	}
 
 	return nil
+}
+
+// Helper function to build role responses
+func (u *userUsecase) buildRoleResponses(roles []models.Role) []response.RoleResponse {
+	roleResponses := make([]response.RoleResponse, len(roles))
+	for i, role := range roles {
+		permissions := make([]response.PermissionResponse, len(role.Permissions))
+		for j, permission := range role.Permissions {
+			permissions[j] = response.PermissionResponse{
+				ID:          permission.ID,
+				Code:        permission.Code,
+				Description: utils.DerefString(permission.Description),
+			}
+		}
+		roleResponses[i] = response.RoleResponse{
+			ID:          role.ID,
+			Name:        role.Name,
+			Permissions: permissions,
+		}
+	}
+	return roleResponses
+}
+
+// Helper function to build user response
+func (u *userUsecase) buildUserResponse(user *models.User) *response.UserResponse {
+	return &response.UserResponse{
+		ID:       user.ID,
+		Username: user.Username,
+		FullName: user.FullName,
+		Email:    user.Email,
+		Phone:    user.Phone,
+		Status:   user.Status,
+		Roles:    u.buildRoleResponses(user.Roles),
+	}
 }

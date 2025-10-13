@@ -10,7 +10,7 @@ type OrderResponse struct {
 	ID           uuid.UUID           `json:"id"`
 	TableID      uuid.UUID           `json:"table_id"`
 	TableName    string              `json:"table_name"`
-	OpenedBy     uuid.UUID           `json:"opened_by"`
+	OpenedBy     *uuid.UUID          `json:"opened_by"`
 	Source       string              `json:"source"`
 	Status       string              `json:"status"`
 	SubtotalBaht int64               `json:"subtotal_baht"`
