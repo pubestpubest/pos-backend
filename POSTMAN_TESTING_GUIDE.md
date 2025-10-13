@@ -45,7 +45,6 @@ Before testing orders, ensure you have:
 | ------------ | -------------------------- | ---------------------------------- |
 | base_url     | http://localhost:8080      | http://localhost:8080              |
 | api_version  | v1                         | v1                                 |
-| token        | (empty)                    | (will be set after login)          |
 | order_id     | (empty)                    | (will be set after creating order) |
 | item_id      | (empty)                    | (will be set after adding item)    |
 | table_id     | (get from GET /tables)     | (UUID)                             |
@@ -76,7 +75,7 @@ POS Backend
 
 ## 🔐 Authentication
 
-### 1. Login to Get Token
+### 1. Login (Sets HttpOnly Cookie)
 
 **Endpoint:** `POST {{base_url}}/{{api_version}}/auth/login`
 
@@ -99,7 +98,6 @@ Content-Type: application/json
 
 ```json
 {
-  "token": "550e8400-e29b-41d4-a716-446655440000",
   "user": {
     "id": "123e4567-e89b-12d3-a456-426614174000",
     "username": "admin",
@@ -107,32 +105,19 @@ Content-Type: application/json
     "email": "admin@pos.com",
     "phone": "1234567890",
     "status": "active"
-  }
+  },
+  "expires_at": "2025-10-12T11:00:00Z",
+  "permissions": ["..."]
 }
 ```
 
-**Postman Test Script (Tests tab):**
+The server sets `Set-Cookie: token=...; HttpOnly; Path=/` on success. Postman will store and send this cookie automatically for subsequent requests to the same origin.
 
-```javascript
-if (pm.response.code === 200) {
-  const response = pm.response.json();
-  pm.environment.set("token", response.token);
-  console.log("Token saved:", response.token);
-}
-```
+### 2. Cookie Handling for All Requests
 
-### 2. Set Authorization for All Order Requests
-
-For ALL subsequent requests, add to **Headers:**
-
-```
-Authorization: Bearer {{token}}
-```
-
-Or use Postman's Authorization tab:
-
-- Type: `Bearer Token`
-- Token: `{{token}}`
+- No Authorization header needed.
+- Ensure you perform Login first so Postman captures the `token` cookie.
+- Postman will automatically include `Cookie: token=...` on all subsequent requests to `{{base_url}}`.
 
 ---
 
@@ -146,7 +131,6 @@ Or use Postman's Authorization tab:
 
 ```
 Content-Type: application/json
-Authorization: Bearer {{token}}
 ```
 
 **Request Body:**
@@ -211,11 +195,7 @@ if (pm.response.code === 201) {
 
 **Endpoint:** `GET {{base_url}}/{{api_version}}/orders`
 
-**Headers:**
-
-```
-Authorization: Bearer {{token}}
-```
+**Headers:** None (cookie sent automatically)
 
 **Request Body:** None
 
@@ -269,11 +249,7 @@ Authorization: Bearer {{token}}
 
 **Endpoint:** `GET {{base_url}}/{{api_version}}/orders/open`
 
-**Headers:**
-
-```
-Authorization: Bearer {{token}}
-```
+**Headers:** None (cookie sent automatically)
 
 **Request Body:** None
 
@@ -311,11 +287,7 @@ Authorization: Bearer {{token}}
 
 **Endpoint:** `GET {{base_url}}/{{api_version}}/orders/{{order_id}}`
 
-**Headers:**
-
-```
-Authorization: Bearer {{token}}
-```
+**Headers:** None (cookie sent automatically)
 
 **Request Body:** None
 
@@ -393,7 +365,6 @@ Authorization: Bearer {{token}}
 
 ```
 Content-Type: application/json
-Authorization: Bearer {{token}}
 ```
 
 **Request Body (Without Modifiers):**
@@ -489,7 +460,6 @@ if (pm.response.code === 200) {
 
 ```
 Content-Type: application/json
-Authorization: Bearer {{token}}
 ```
 
 **Request Body:**
@@ -553,11 +523,7 @@ Authorization: Bearer {{token}}
 
 **Endpoint:** `DELETE {{base_url}}/{{api_version}}/orders/{{order_id}}/items/{{item_id}}`
 
-**Headers:**
-
-```
-Authorization: Bearer {{token}}
-```
+**Headers:** None (cookie sent automatically)
 
 **Request Body:** None
 
@@ -594,11 +560,7 @@ Authorization: Bearer {{token}}
 
 **Endpoint:** `GET {{base_url}}/{{api_version}}/tables/{{table_id}}/orders`
 
-**Headers:**
-
-```
-Authorization: Bearer {{token}}
-```
+**Headers:** None (cookie sent automatically)
 
 **Request Body:** None
 
@@ -637,11 +599,7 @@ Authorization: Bearer {{token}}
 
 **Endpoint:** `PUT {{base_url}}/{{api_version}}/orders/{{order_id}}/close`
 
-**Headers:**
-
-```
-Authorization: Bearer {{token}}
-```
+**Headers:** None (cookie sent automatically)
 
 **Request Body:** None
 
@@ -679,11 +637,7 @@ Authorization: Bearer {{token}}
 
 **Endpoint:** `PUT {{base_url}}/{{api_version}}/orders/{{order_id}}/void`
 
-**Headers:**
-
-```
-Authorization: Bearer {{token}}
-```
+**Headers:** None (cookie sent automatically)
 
 **Request Body:** None
 
@@ -717,7 +671,7 @@ Follow these steps in order:
 POST /v1/auth/login
 ```
 
-→ Save the `token`
+→ Postman will store the `token` cookie automatically
 
 #### Step 2: Get Table ID
 
@@ -833,15 +787,15 @@ GET /v1/orders/{{order_id}}
 
 ### Authentication Errors
 
-**Error:** `Authorization header required`
+**Error:** `Authentication cookie required`
 
 ```json
 {
-  "error": "Authorization header required"
+  "error": "Authentication cookie required"
 }
 ```
 
-**Solution:** Add `Authorization: Bearer {{token}}` header
+**Solution:** Login first so Postman captures the `token` cookie, or ensure the cookie exists for `{{base_url}}`.
 
 **Error:** `Invalid or expired token`
 

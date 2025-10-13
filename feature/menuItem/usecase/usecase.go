@@ -27,12 +27,12 @@ func (u *menuItemUsecase) GetAllMenuItems() ([]*response.MenuItemResponse, error
 	menuItemResponses := make([]*response.MenuItemResponse, len(menuItems))
 	for i, menuItem := range menuItems {
 		menuItemResponses[i] = &response.MenuItemResponse{
-			ID:         menuItem.ID,
-			Name:       utils.DerefString(menuItem.Name),
-			PriceBaht:  utils.DerefInt64(menuItem.PriceBaht),
-			Active:     utils.DerefBool(menuItem.Active),
-			ImageURL:   utils.DerefString(menuItem.ImageURL),
-			CategoryID: utils.DerefUUID(menuItem.CategoryID),
+			ID:        menuItem.ID,
+			Name:      utils.DerefString(menuItem.Name),
+			PriceBaht: utils.DerefInt64(menuItem.PriceBaht),
+			Active:    utils.DerefBool(menuItem.Active),
+			ImageURL:  utils.DerefString(menuItem.ImageURL),
+			Category:  response.CategoryResponse{ID: utils.DerefUUID(menuItem.CategoryID), Name: utils.DerefString(menuItem.Category.Name), DisplayOrder: utils.DerefInt(menuItem.Category.DisplayOrder)},
 		}
 	}
 
@@ -46,12 +46,12 @@ func (u *menuItemUsecase) GetMenuItemByID(id uuid.UUID) (*response.MenuItemRespo
 	}
 
 	return &response.MenuItemResponse{
-		ID:         menuItem.ID,
-		Name:       utils.DerefString(menuItem.Name),
-		PriceBaht:  utils.DerefInt64(menuItem.PriceBaht),
-		Active:     utils.DerefBool(menuItem.Active),
-		ImageURL:   utils.DerefString(menuItem.ImageURL),
-		CategoryID: utils.DerefUUID(menuItem.CategoryID),
+		ID:        menuItem.ID,
+		Name:      utils.DerefString(menuItem.Name),
+		PriceBaht: utils.DerefInt64(menuItem.PriceBaht),
+		Active:    utils.DerefBool(menuItem.Active),
+		ImageURL:  utils.DerefString(menuItem.ImageURL),
+		Category:  response.CategoryResponse{ID: utils.DerefUUID(menuItem.CategoryID), Name: utils.DerefString(menuItem.Category.Name), DisplayOrder: utils.DerefInt(menuItem.Category.DisplayOrder)},
 	}, nil
 }
 
@@ -75,12 +75,12 @@ func (u *menuItemUsecase) CreateMenuItem(req *request.MenuItemRequest) (*respons
 	}
 
 	return &response.MenuItemResponse{
-		ID:         menuItem.ID,
-		Name:       req.Name,
-		PriceBaht:  req.PriceBaht,
-		Active:     active,
-		ImageURL:   utils.DerefString(req.ImageURL),
-		CategoryID: utils.DerefUUID(req.CategoryID),
+		ID:        menuItem.ID,
+		Name:      req.Name,
+		PriceBaht: req.PriceBaht,
+		Active:    active,
+		ImageURL:  utils.DerefString(req.ImageURL),
+		Category:  response.CategoryResponse{ID: utils.DerefUUID(req.CategoryID), Name: req.Name, DisplayOrder: 0},
 	}, nil
 }
 
@@ -106,12 +106,12 @@ func (u *menuItemUsecase) UpdateMenuItem(id uuid.UUID, req *request.MenuItemRequ
 	}
 
 	return &response.MenuItemResponse{
-		ID:         menuItem.ID,
-		Name:       utils.DerefString(menuItem.Name),
-		PriceBaht:  utils.DerefInt64(menuItem.PriceBaht),
-		Active:     utils.DerefBool(menuItem.Active),
-		ImageURL:   utils.DerefString(menuItem.ImageURL),
-		CategoryID: utils.DerefUUID(menuItem.CategoryID),
+		ID:        menuItem.ID,
+		Name:      utils.DerefString(menuItem.Name),
+		PriceBaht: utils.DerefInt64(menuItem.PriceBaht),
+		Active:    utils.DerefBool(menuItem.Active),
+		ImageURL:  utils.DerefString(menuItem.ImageURL),
+		Category:  response.CategoryResponse{ID: utils.DerefUUID(menuItem.CategoryID), Name: utils.DerefString(menuItem.Category.Name), DisplayOrder: utils.DerefInt(menuItem.Category.DisplayOrder)},
 	}, nil
 }
 
