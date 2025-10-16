@@ -18,7 +18,7 @@ func NewModifierRepository(db *gorm.DB) domain.ModifierRepository {
 
 func (r *modifierRepository) GetAllModifiers() ([]*models.Modifier, error) {
 	var modifiers []*models.Modifier
-	if err := r.db.Order("name ASC").Find(&modifiers).Error; err != nil {
+	if err := r.db.Preload("Category").Order("name ASC").Find(&modifiers).Error; err != nil {
 		return nil, errors.Wrap(err, "[ModifierRepository.GetAllModifiers]: Error querying database")
 	}
 	return modifiers, nil
@@ -26,7 +26,7 @@ func (r *modifierRepository) GetAllModifiers() ([]*models.Modifier, error) {
 
 func (r *modifierRepository) GetModifierByID(id uuid.UUID) (*models.Modifier, error) {
 	var modifier models.Modifier
-	if err := r.db.Where("id = ?", id).First(&modifier).Error; err != nil {
+	if err := r.db.Preload("Category").Where("id = ?", id).First(&modifier).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
 			return nil, errors.Wrap(err, "[ModifierRepository.GetModifierByID]: Modifier not found")
 		}
@@ -54,4 +54,12 @@ func (r *modifierRepository) DeleteModifier(id uuid.UUID) error {
 		return errors.Wrap(err, "[ModifierRepository.DeleteModifier]: Error deleting modifier")
 	}
 	return nil
+}
+
+func (r *modifierRepository) GetModifiersByCategoryID(categoryID uuid.UUID) ([]*models.Modifier, error) {
+	var modifiers []*models.Modifier
+	if err := r.db.Preload("Category").Where("category_id = ?", categoryID).Order("name ASC").Find(&modifiers).Error; err != nil {
+		return nil, errors.Wrap(err, "[ModifierRepository.GetModifiersByCategoryID]: Error querying database")
+	}
+	return modifiers, nil
 }

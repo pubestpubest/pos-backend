@@ -103,3 +103,20 @@ func (h *modifierHandler) DeleteModifier(c *gin.Context) {
 	}
 	c.JSON(http.StatusOK, gin.H{"message": "Modifier deleted successfully"})
 }
+
+func (h *modifierHandler) GetModifiersByCategoryID(c *gin.Context) {
+	categoryID, err := uuid.Parse(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid category ID"})
+		return
+	}
+
+	modifiers, err := h.modifierUsecase.GetModifiersByCategoryID(categoryID)
+	if err != nil {
+		err = errors.Wrap(err, "[ModifierHandler.GetModifiersByCategoryID]: Error getting modifiers")
+		log.Warn(err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": utils.StandardError(err)})
+		return
+	}
+	c.JSON(http.StatusOK, modifiers)
+}

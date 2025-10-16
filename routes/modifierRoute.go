@@ -3,6 +3,7 @@ package routes
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/pubestpubest/pos-backend/database"
+	categoryRepository "github.com/pubestpubest/pos-backend/feature/category/repository"
 	modifierHandler "github.com/pubestpubest/pos-backend/feature/modifier/delivery"
 	modifierRepository "github.com/pubestpubest/pos-backend/feature/modifier/repository"
 	modifierUsecase "github.com/pubestpubest/pos-backend/feature/modifier/usecase"
@@ -11,7 +12,8 @@ import (
 
 func ModifierRoutes(v1 *gin.RouterGroup) {
 	modifierRepository := modifierRepository.NewModifierRepository(database.DB)
-	modifierUsecase := modifierUsecase.NewModifierUsecase(modifierRepository)
+	categoryRepository := categoryRepository.NewCategoryRepository(database.DB)
+	modifierUsecase := modifierUsecase.NewModifierUsecase(modifierRepository, categoryRepository)
 	modifierHandler := modifierHandler.NewModifierHandler(modifierUsecase)
 
 	// Public routes for customers
@@ -19,6 +21,12 @@ func ModifierRoutes(v1 *gin.RouterGroup) {
 	{
 		modifierPublicRoutes.GET("", modifierHandler.GetAllModifiers)
 		modifierPublicRoutes.GET("/:id", modifierHandler.GetModifierByID)
+	}
+
+	// Category-specific modifiers route
+	categoryModifierRoutes := v1.Group("/categories")
+	{
+		categoryModifierRoutes.GET("/:id/modifiers", modifierHandler.GetModifiersByCategoryID)
 	}
 
 	// Protected routes for staff/admin

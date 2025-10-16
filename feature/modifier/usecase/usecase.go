@@ -12,10 +12,14 @@ import (
 
 type modifierUsecase struct {
 	modifierRepository domain.ModifierRepository
+	categoryRepository domain.CategoryRepository
 }
 
-func NewModifierUsecase(modifierRepository domain.ModifierRepository) domain.ModifierUsecase {
-	return &modifierUsecase{modifierRepository: modifierRepository}
+func NewModifierUsecase(modifierRepository domain.ModifierRepository, categoryRepository domain.CategoryRepository) domain.ModifierUsecase {
+	return &modifierUsecase{
+		modifierRepository: modifierRepository,
+		categoryRepository: categoryRepository,
+	}
 }
 
 func (u *modifierUsecase) GetAllModifiers() ([]*response.ModifierResponse, error) {
@@ -26,12 +30,7 @@ func (u *modifierUsecase) GetAllModifiers() ([]*response.ModifierResponse, error
 
 	modifierResponses := make([]*response.ModifierResponse, len(modifiers))
 	for i, modifier := range modifiers {
-		modifierResponses[i] = &response.ModifierResponse{
-			ID:             modifier.ID,
-			Name:           utils.DerefString(modifier.Name),
-			PriceDeltaBaht: utils.DerefInt64(modifier.PriceDeltaBaht),
-			Note:           utils.DerefString(modifier.Note),
-		}
+		modifierResponses[i] = u.mapModifierToResponse(modifier)
 	}
 
 	return modifierResponses, nil
@@ -43,15 +42,32 @@ func (u *modifierUsecase) GetModifierByID(id uuid.UUID) (*response.ModifierRespo
 		return nil, errors.Wrap(err, "[ModifierUsecase.GetModifierByID]: Error getting modifier")
 	}
 
-	return &response.ModifierResponse{
-		ID:             modifier.ID,
-		Name:           utils.DerefString(modifier.Name),
-		PriceDeltaBaht: utils.DerefInt64(modifier.PriceDeltaBaht),
-		Note:           utils.DerefString(modifier.Note),
-	}, nil
+	return u.mapModifierToResponse(modifier), nil
+}
+
+func (u *modifierUsecase) GetModifiersByCategoryID(categoryID uuid.UUID) ([]*response.ModifierResponse, error) {
+	modifiers, err := u.modifierRepository.GetModifiersByCategoryID(categoryID)
+	if err != nil {
+		return nil, errors.Wrap(err, "[ModifierUsecase.GetModifiersByCategoryID]: Error getting modifiers")
+	}
+
+	modifierResponses := make([]*response.ModifierResponse, len(modifiers))
+	for i, modifier := range modifiers {
+		modifierResponses[i] = u.mapModifierToResponse(modifier)
+	}
+
+	return modifierResponses, nil
 }
 
 func (u *modifierUsecase) CreateModifier(req *request.ModifierRequest) (*response.ModifierResponse, error) {
+	// Validate category exists if provided
+	if req.CategoryID != nil {
+		_, err := u.categoryRepository.GetCategoryByID(*req.CategoryID)
+		if err != nil {
+			return nil, errors.Wrap(err, "[ModifierUsecase.CreateModifier]: Category not found")
+		}
+	}
+
 	// Set default price delta to 0 if not provided
 	priceDelta := int64(0)
 	if req.PriceDeltaBaht != nil {
@@ -59,6 +75,7 @@ func (u *modifierUsecase) CreateModifier(req *request.ModifierRequest) (*respons
 	}
 
 	modifier := &models.Modifier{
+		CategoryID:     req.CategoryID,
 		Name:           &req.Name,
 		PriceDeltaBaht: &priceDelta,
 		Note:           req.Note,
@@ -68,12 +85,13 @@ func (u *modifierUsecase) CreateModifier(req *request.ModifierRequest) (*respons
 		return nil, errors.Wrap(err, "[ModifierUsecase.CreateModifier]: Error creating modifier")
 	}
 
-	return &response.ModifierResponse{
-		ID:             modifier.ID,
-		Name:           req.Name,
-		PriceDeltaBaht: priceDelta,
-		Note:           utils.DerefString(req.Note),
-	}, nil
+	// Fetch the created modifier with category relationship
+	createdModifier, err := u.modifierRepository.GetModifierByID(modifier.ID)
+	if err != nil {
+		return nil, errors.Wrap(err, "[ModifierUsecase.CreateModifier]: Error fetching created modifier")
+	}
+
+	return u.mapModifierToResponse(createdModifier), nil
 }
 
 func (u *modifierUsecase) UpdateModifier(id uuid.UUID, req *request.ModifierRequest) (*response.ModifierResponse, error) {
@@ -83,7 +101,16 @@ func (u *modifierUsecase) UpdateModifier(id uuid.UUID, req *request.ModifierRequ
 		return nil, errors.Wrap(err, "[ModifierUsecase.UpdateModifier]: Modifier not found")
 	}
 
+	// Validate category exists if provided
+	if req.CategoryID != nil {
+		_, err := u.categoryRepository.GetCategoryByID(*req.CategoryID)
+		if err != nil {
+			return nil, errors.Wrap(err, "[ModifierUsecase.UpdateModifier]: Category not found")
+		}
+	}
+
 	// Update fields
+	modifier.CategoryID = req.CategoryID
 	modifier.Name = &req.Name
 	if req.PriceDeltaBaht != nil {
 		modifier.PriceDeltaBaht = req.PriceDeltaBaht
@@ -94,12 +121,13 @@ func (u *modifierUsecase) UpdateModifier(id uuid.UUID, req *request.ModifierRequ
 		return nil, errors.Wrap(err, "[ModifierUsecase.UpdateModifier]: Error updating modifier")
 	}
 
-	return &response.ModifierResponse{
-		ID:             modifier.ID,
-		Name:           utils.DerefString(modifier.Name),
-		PriceDeltaBaht: utils.DerefInt64(modifier.PriceDeltaBaht),
-		Note:           utils.DerefString(modifier.Note),
-	}, nil
+	// Fetch the updated modifier with category relationship
+	updatedModifier, err := u.modifierRepository.GetModifierByID(id)
+	if err != nil {
+		return nil, errors.Wrap(err, "[ModifierUsecase.UpdateModifier]: Error fetching updated modifier")
+	}
+
+	return u.mapModifierToResponse(updatedModifier), nil
 }
 
 func (u *modifierUsecase) DeleteModifier(id uuid.UUID) error {
@@ -114,4 +142,26 @@ func (u *modifierUsecase) DeleteModifier(id uuid.UUID) error {
 	}
 
 	return nil
+}
+
+// Helper function to map modifier model to response
+func (u *modifierUsecase) mapModifierToResponse(modifier *models.Modifier) *response.ModifierResponse {
+	resp := &response.ModifierResponse{
+		ID:             modifier.ID,
+		CategoryID:     modifier.CategoryID,
+		Name:           utils.DerefString(modifier.Name),
+		PriceDeltaBaht: utils.DerefInt64(modifier.PriceDeltaBaht),
+		Note:           utils.DerefString(modifier.Note),
+	}
+
+	// Include category data if present
+	if modifier.Category != nil {
+		resp.Category = &response.CategoryResponse{
+			ID:           modifier.Category.ID,
+			Name:         utils.DerefString(modifier.Category.Name),
+			DisplayOrder: utils.DerefInt(modifier.Category.DisplayOrder),
+		}
+	}
+
+	return resp
 }

@@ -3,7 +3,6 @@ package usecase
 import (
 	"crypto/rand"
 	"encoding/hex"
-	"fmt"
 	"time"
 
 	"github.com/google/uuid"
@@ -154,10 +153,6 @@ func (u *authUsecase) GetUserByToken(token string) (*models.User, error) {
 	if err != nil {
 		return nil, errors.Wrap(err, "[AuthUsecase.GetUserByToken]: Error getting user")
 	}
-
-	fmt.Println("user: ", user)
-	fmt.Println("role: ", user.Roles)
-	fmt.Println("permission: ", user.Roles[0].Permissions)
 	return user, nil
 }
 

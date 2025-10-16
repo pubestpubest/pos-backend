@@ -8,4 +8,5 @@ type Category struct {
 	DisplayOrder *int      `gorm:"column:display_order"`
 
 	MenuItems []MenuItem `gorm:"foreignKey:CategoryID"`
+	Modifiers []Modifier `gorm:"foreignKey:CategoryID"`
 }
