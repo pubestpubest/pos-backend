@@ -3,6 +3,7 @@ package delivery
 import (
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
@@ -258,4 +259,167 @@ func (h *menuItemHandler) GetAvailableModifiers(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, modifiers)
+}
+
+// GetAllMenuItemsStatistics returns sales statistics for all menu items
+func (h *menuItemHandler) GetAllMenuItemsStatistics(c *gin.Context) {
+	// Parse query parameters
+	var startDate, endDate *time.Time
+	if startDateStr := c.Query("start_date"); startDateStr != "" {
+		parsed, err := time.Parse(time.RFC3339, startDateStr)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid start_date format (use RFC3339)"})
+			return
+		}
+		startDate = &parsed
+	}
+
+	if endDateStr := c.Query("end_date"); endDateStr != "" {
+		parsed, err := time.Parse(time.RFC3339, endDateStr)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid end_date format (use RFC3339)"})
+			return
+		}
+		endDate = &parsed
+	}
+
+	var categoryID *uuid.UUID
+	if categoryIDStr := c.Query("category_id"); categoryIDStr != "" {
+		parsed, err := uuid.Parse(categoryIDStr)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid category_id"})
+			return
+		}
+		categoryID = &parsed
+	}
+
+	sortBy := c.DefaultQuery("sort_by", "quantity_sold")
+	order := c.DefaultQuery("order", "desc")
+	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "0"))
+
+	// Get statistics
+	statistics, err := h.menuItemUsecase.GetAllMenuItemsStatistics(startDate, endDate, categoryID, sortBy, order, limit)
+	if err != nil {
+		err = errors.Wrap(err, "[MenuItemHandler.GetAllMenuItemsStatistics]: Error getting statistics")
+		log.Warn(err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": utils.StandardError(err)})
+		return
+	}
+
+	c.JSON(http.StatusOK, statistics)
+}
+
+// GetMenuItemStatistics returns detailed statistics for a specific menu item
+func (h *menuItemHandler) GetMenuItemStatistics(c *gin.Context) {
+	id, err := uuid.Parse(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid menu item ID"})
+		return
+	}
+
+	// Parse query parameters
+	var startDate, endDate *time.Time
+	if startDateStr := c.Query("start_date"); startDateStr != "" {
+		parsed, err := time.Parse(time.RFC3339, startDateStr)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid start_date format (use RFC3339)"})
+			return
+		}
+		startDate = &parsed
+	}
+
+	if endDateStr := c.Query("end_date"); endDateStr != "" {
+		parsed, err := time.Parse(time.RFC3339, endDateStr)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid end_date format (use RFC3339)"})
+			return
+		}
+		endDate = &parsed
+	}
+
+	groupBy := c.Query("group_by") // day, week, month
+
+	// Get statistics
+	statistics, err := h.menuItemUsecase.GetMenuItemStatistics(id, startDate, endDate, groupBy)
+	if err != nil {
+		err = errors.Wrap(err, "[MenuItemHandler.GetMenuItemStatistics]: Error getting statistics")
+		log.Warn(err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": utils.StandardError(err)})
+		return
+	}
+
+	c.JSON(http.StatusOK, statistics)
+}
+
+// GetTopSellingItems returns the top selling menu items
+func (h *menuItemHandler) GetTopSellingItems(c *gin.Context) {
+	limit, _ := strconv.Atoi(c.DefaultQuery("limit", "10"))
+	metric := c.DefaultQuery("metric", "quantity")
+
+	// Parse query parameters
+	var startDate, endDate *time.Time
+	if startDateStr := c.Query("start_date"); startDateStr != "" {
+		parsed, err := time.Parse(time.RFC3339, startDateStr)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid start_date format (use RFC3339)"})
+			return
+		}
+		startDate = &parsed
+	}
+
+	if endDateStr := c.Query("end_date"); endDateStr != "" {
+		parsed, err := time.Parse(time.RFC3339, endDateStr)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid end_date format (use RFC3339)"})
+			return
+		}
+		endDate = &parsed
+	}
+
+	// Get top selling items
+	topItems, err := h.menuItemUsecase.GetTopSellingItems(limit, startDate, endDate, metric)
+	if err != nil {
+		err = errors.Wrap(err, "[MenuItemHandler.GetTopSellingItems]: Error getting top selling items")
+		log.Warn(err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": utils.StandardError(err)})
+		return
+	}
+
+	c.JSON(http.StatusOK, topItems)
+}
+
+// GetLowSellingItems returns items with low or no sales
+func (h *menuItemHandler) GetLowSellingItems(c *gin.Context) {
+	threshold, _ := strconv.Atoi(c.DefaultQuery("threshold", "5"))
+
+	// Parse query parameters (optional, like top-selling-items)
+	var startDate, endDate *time.Time
+	if startDateStr := c.Query("start_date"); startDateStr != "" {
+		parsed, err := time.Parse(time.RFC3339, startDateStr)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid start_date format (use RFC3339)"})
+			return
+		}
+		startDate = &parsed
+	}
+
+	if endDateStr := c.Query("end_date"); endDateStr != "" {
+		parsed, err := time.Parse(time.RFC3339, endDateStr)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid end_date format (use RFC3339)"})
+			return
+		}
+		endDate = &parsed
+	}
+
+	// Get low selling items
+	lowItems, err := h.menuItemUsecase.GetLowSellingItems(startDate, endDate, threshold)
+	if err != nil {
+		err = errors.Wrap(err, "[MenuItemHandler.GetLowSellingItems]: Error getting low selling items")
+		log.Warn(err)
+		c.JSON(http.StatusInternalServerError, gin.H{"error": utils.StandardError(err)})
+		return
+	}
+
+	c.JSON(http.StatusOK, lowItems)
 }
