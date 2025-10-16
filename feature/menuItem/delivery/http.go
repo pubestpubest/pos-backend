@@ -2,9 +2,11 @@ package delivery
 
 import (
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
+	"github.com/minio/minio-go/v7"
 	"github.com/pkg/errors"
 	"github.com/pubestpubest/pos-backend/domain"
 	"github.com/pubestpubest/pos-backend/request"
@@ -14,10 +16,14 @@ import (
 
 type menuItemHandler struct {
 	menuItemUsecase domain.MenuItemUsecase
+	minioClient     *minio.Client
 }
 
-func NewMenuItemHandler(menuItemUsecase domain.MenuItemUsecase) *menuItemHandler {
-	return &menuItemHandler{menuItemUsecase: menuItemUsecase}
+func NewMenuItemHandler(menuItemUsecase domain.MenuItemUsecase, minioClient *minio.Client) *menuItemHandler {
+	return &menuItemHandler{
+		menuItemUsecase: menuItemUsecase,
+		minioClient:     minioClient,
+	}
 }
 
 func (h *menuItemHandler) GetAllMenuItems(c *gin.Context) {
@@ -49,14 +55,74 @@ func (h *menuItemHandler) GetMenuItemByID(c *gin.Context) {
 }
 
 func (h *menuItemHandler) CreateMenuItem(c *gin.Context) {
-	var req request.MenuItemRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
+	// Parse multipart form
+	if err := c.Request.ParseMultipartForm(10 << 20); err != nil { // 10MB max
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to parse form data"})
 		return
 	}
 
-	menuItem, err := h.menuItemUsecase.CreateMenuItem(&req)
+	// Get form values
+	name := c.PostForm("name")
+	sku := c.PostForm("sku")
+	priceBahtStr := c.PostForm("price_baht")
+	categoryIDStr := c.PostForm("category_id")
+	activeStr := c.PostForm("active")
+
+	// Validate required fields
+	if name == "" || sku == "" || priceBahtStr == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Name, SKU, and price_baht are required"})
+		return
+	}
+
+	// Parse price
+	priceBaht, err := strconv.ParseInt(priceBahtStr, 10, 64)
 	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid price_baht value"})
+		return
+	}
+
+	// Build request
+	req := &request.MenuItemRequest{
+		Name:      name,
+		SKU:       sku,
+		PriceBaht: priceBaht,
+	}
+
+	// Parse category ID if provided
+	if categoryIDStr != "" {
+		categoryID, err := uuid.Parse(categoryIDStr)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid category_id"})
+			return
+		}
+		req.CategoryID = &categoryID
+	}
+
+	// Parse active status
+	if activeStr != "" {
+		active := activeStr == "true"
+		req.Active = &active
+	}
+
+	// Handle image upload if provided
+	file, err := c.FormFile("image")
+	if err == nil && file != nil {
+		imageURL, err := utils.UploadImageToMinio(h.minioClient, file)
+		if err != nil {
+			err = errors.Wrap(err, "[MenuItemHandler.CreateMenuItem]: Error uploading image")
+			log.Warn(err)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": utils.StandardError(err)})
+			return
+		}
+		req.ImageURL = &imageURL
+	}
+
+	menuItem, err := h.menuItemUsecase.CreateMenuItem(req)
+	if err != nil {
+		// If image was uploaded, clean it up
+		if req.ImageURL != nil {
+			_ = utils.DeleteImageFromMinio(h.minioClient, *req.ImageURL)
+		}
 		err = errors.Wrap(err, "[MenuItemHandler.CreateMenuItem]: Error creating menu item")
 		log.Warn(err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": utils.StandardError(err)})
@@ -72,13 +138,89 @@ func (h *menuItemHandler) UpdateMenuItem(c *gin.Context) {
 		return
 	}
 
-	var req request.MenuItemRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid request body"})
+	// Get existing menu item to get old image URL
+	existingMenuItem, err := h.menuItemUsecase.GetMenuItemByID(id)
+	if err != nil {
+		err = errors.Wrap(err, "[MenuItemHandler.UpdateMenuItem]: Menu item not found")
+		log.Warn(err)
+		c.JSON(http.StatusNotFound, gin.H{"error": utils.StandardError(err)})
 		return
 	}
 
-	menuItem, err := h.menuItemUsecase.UpdateMenuItem(id, &req)
+	// Parse multipart form
+	if err := c.Request.ParseMultipartForm(10 << 20); err != nil { // 10MB max
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Failed to parse form data"})
+		return
+	}
+
+	// Get form values
+	name := c.PostForm("name")
+	sku := c.PostForm("sku")
+	priceBahtStr := c.PostForm("price_baht")
+	categoryIDStr := c.PostForm("category_id")
+	activeStr := c.PostForm("active")
+
+	// Validate required fields
+	if name == "" || sku == "" || priceBahtStr == "" {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Name, SKU, and price_baht are required"})
+		return
+	}
+
+	// Parse price
+	priceBaht, err := strconv.ParseInt(priceBahtStr, 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid price_baht value"})
+		return
+	}
+
+	// Build request
+	req := &request.MenuItemRequest{
+		Name:      name,
+		SKU:       sku,
+		PriceBaht: priceBaht,
+	}
+
+	// Parse category ID if provided
+	if categoryIDStr != "" {
+		categoryID, err := uuid.Parse(categoryIDStr)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid category_id"})
+			return
+		}
+		req.CategoryID = &categoryID
+	}
+
+	// Parse active status
+	if activeStr != "" {
+		active := activeStr == "true"
+		req.Active = &active
+	}
+
+	// Keep existing image URL by default
+	oldImageURL := existingMenuItem.ImageURL
+	req.ImageURL = &oldImageURL
+
+	// Handle new image upload if provided
+	file, err := c.FormFile("image")
+	if err == nil && file != nil {
+		newImageURL, err := utils.UploadImageToMinio(h.minioClient, file)
+		if err != nil {
+			err = errors.Wrap(err, "[MenuItemHandler.UpdateMenuItem]: Error uploading image")
+			log.Warn(err)
+			c.JSON(http.StatusInternalServerError, gin.H{"error": utils.StandardError(err)})
+			return
+		}
+		req.ImageURL = &newImageURL
+
+		// Delete old image if it exists and is different
+		if oldImageURL != "" && oldImageURL != newImageURL {
+			if err := utils.DeleteImageFromMinio(h.minioClient, oldImageURL); err != nil {
+				log.Warnf("[MenuItemHandler.UpdateMenuItem]: Failed to delete old image: %v", err)
+			}
+		}
+	}
+
+	menuItem, err := h.menuItemUsecase.UpdateMenuItem(id, req)
 	if err != nil {
 		err = errors.Wrap(err, "[MenuItemHandler.UpdateMenuItem]: Error updating menu item")
 		log.Warn(err)
@@ -95,12 +237,30 @@ func (h *menuItemHandler) DeleteMenuItem(c *gin.Context) {
 		return
 	}
 
+	// Get existing menu item to delete associated image
+	existingMenuItem, err := h.menuItemUsecase.GetMenuItemByID(id)
+	if err != nil {
+		err = errors.Wrap(err, "[MenuItemHandler.DeleteMenuItem]: Menu item not found")
+		log.Warn(err)
+		c.JSON(http.StatusNotFound, gin.H{"error": utils.StandardError(err)})
+		return
+	}
+
+	// Delete menu item from database
 	if err := h.menuItemUsecase.DeleteMenuItem(id); err != nil {
 		err = errors.Wrap(err, "[MenuItemHandler.DeleteMenuItem]: Error deleting menu item")
 		log.Warn(err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": utils.StandardError(err)})
 		return
 	}
+
+	// Delete associated image if exists
+	if existingMenuItem.ImageURL != "" {
+		if err := utils.DeleteImageFromMinio(h.minioClient, existingMenuItem.ImageURL); err != nil {
+			log.Warnf("[MenuItemHandler.DeleteMenuItem]: Failed to delete image: %v", err)
+		}
+	}
+
 	c.JSON(http.StatusOK, gin.H{"message": "Menu item deleted successfully"})
 }
 

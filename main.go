@@ -54,6 +54,10 @@ func init() {
 		log.Fatal("[init]: Connect database PG error: ", err.Error())
 	}
 
+	if err := database.ConnectMinio(); err != nil {
+		log.Fatal("[init]: Connect MinIO error: ", err.Error())
+	}
+
 	isSeed := os.Getenv("SEED_DB")
 	if isSeed == "" {
 		isSeed = "false"

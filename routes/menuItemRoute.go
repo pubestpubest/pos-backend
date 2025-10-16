@@ -12,7 +12,7 @@ import (
 func MenuItemRoutes(v1 *gin.RouterGroup) {
 	menuItemRepository := menuItemRepository.NewMenuItemRepository(database.DB)
 	menuItemUsecase := menuItemUsecase.NewMenuItemUsecase(menuItemRepository)
-	menuItemHandler := menuItemHandler.NewMenuItemHandler(menuItemUsecase)
+	menuItemHandler := menuItemHandler.NewMenuItemHandler(menuItemUsecase, database.MinioClient)
 
 	// Public routes for customers
 	menuItemPublicRoutes := v1.Group("/menu-items")
