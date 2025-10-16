@@ -18,7 +18,14 @@ func NewOrderRepository(db *gorm.DB) domain.OrderRepository {
 
 func (r *orderRepository) GetAllOrders() ([]*models.Order, error) {
 	var orders []*models.Order
-	if err := r.db.Preload("Table").Preload("Items.MenuItem").Preload("Items.Modifiers.Modifier").Order("created_at DESC").Find(&orders).Error; err != nil {
+	if err := r.db.
+		Preload("Table").
+		Preload("Items.MenuItem", func(db *gorm.DB) *gorm.DB {
+			return db.Unscoped() // Include soft-deleted menu items for historical orders
+		}).
+		Preload("Items.Modifiers.Modifier").
+		Order("created_at DESC").
+		Find(&orders).Error; err != nil {
 		return nil, errors.Wrap(err, "[OrderRepository.GetAllOrders]: Error querying database")
 	}
 	return orders, nil
@@ -37,7 +44,14 @@ func (r *orderRepository) GetOrderByID(id uuid.UUID) (*models.Order, error) {
 
 func (r *orderRepository) GetOrderWithItems(id uuid.UUID) (*models.Order, error) {
 	var order models.Order
-	if err := r.db.Preload("Table").Preload("Items.MenuItem").Preload("Items.Modifiers.Modifier").Where("id = ?", id).First(&order).Error; err != nil {
+	if err := r.db.
+		Preload("Table").
+		Preload("Items.MenuItem", func(db *gorm.DB) *gorm.DB {
+			return db.Unscoped() // Include soft-deleted menu items for historical orders
+		}).
+		Preload("Items.Modifiers.Modifier").
+		Where("id = ?", id).
+		First(&order).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
 			return nil, errors.Wrap(err, "[OrderRepository.GetOrderWithItems]: Order not found")
 		}
@@ -48,7 +62,15 @@ func (r *orderRepository) GetOrderWithItems(id uuid.UUID) (*models.Order, error)
 
 func (r *orderRepository) GetOrdersByTable(tableID uuid.UUID) ([]*models.Order, error) {
 	var orders []*models.Order
-	if err := r.db.Preload("Table").Preload("Items.MenuItem").Preload("Items.Modifiers.Modifier").Where("table_id = ?", tableID).Order("created_at DESC").Find(&orders).Error; err != nil {
+	if err := r.db.
+		Preload("Table").
+		Preload("Items.MenuItem", func(db *gorm.DB) *gorm.DB {
+			return db.Unscoped() // Include soft-deleted menu items for historical orders
+		}).
+		Preload("Items.Modifiers.Modifier").
+		Where("table_id = ?", tableID).
+		Order("created_at DESC").
+		Find(&orders).Error; err != nil {
 		return nil, errors.Wrap(err, "[OrderRepository.GetOrdersByTable]: Error querying database")
 	}
 	return orders, nil
@@ -56,7 +78,15 @@ func (r *orderRepository) GetOrdersByTable(tableID uuid.UUID) ([]*models.Order, 
 
 func (r *orderRepository) GetOrdersByStatus(status string) ([]*models.Order, error) {
 	var orders []*models.Order
-	if err := r.db.Preload("Table").Preload("Items.MenuItem").Preload("Items.Modifiers.Modifier").Where("status = ?", status).Order("created_at DESC").Find(&orders).Error; err != nil {
+	if err := r.db.
+		Preload("Table").
+		Preload("Items.MenuItem", func(db *gorm.DB) *gorm.DB {
+			return db.Unscoped() // Include soft-deleted menu items for historical orders
+		}).
+		Preload("Items.Modifiers.Modifier").
+		Where("status = ?", status).
+		Order("created_at DESC").
+		Find(&orders).Error; err != nil {
 		return nil, errors.Wrap(err, "[OrderRepository.GetOrdersByStatus]: Error querying database")
 	}
 	return orders, nil
@@ -99,7 +129,13 @@ func (r *orderRepository) DeleteOrderItem(id uuid.UUID) error {
 
 func (r *orderRepository) GetOrderItemByID(id uuid.UUID) (*models.OrderItem, error) {
 	var orderItem models.OrderItem
-	if err := r.db.Preload("MenuItem").Preload("Modifiers.Modifier").Where("id = ?", id).First(&orderItem).Error; err != nil {
+	if err := r.db.
+		Preload("MenuItem", func(db *gorm.DB) *gorm.DB {
+			return db.Unscoped() // Include soft-deleted menu items for historical orders
+		}).
+		Preload("Modifiers.Modifier").
+		Where("id = ?", id).
+		First(&orderItem).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
 			return nil, errors.Wrap(err, "[OrderRepository.GetOrderItemByID]: Order item not found")
 		}

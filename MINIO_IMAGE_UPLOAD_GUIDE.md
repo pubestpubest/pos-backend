@@ -151,6 +151,7 @@ When you create or update a menu item, the response includes the `image_url`:
 {
   "id": "550e8400-e29b-41d4-a716-446655440000",
   "name": "Pad Thai",
+  "sku": "PADTHAI001",
   "price_baht": 120,
   "active": true,
   "image_url": "http://localhost:9000/menu-images/550e8400-1234-5678-9012-abcdef123456-1697486400.jpg",

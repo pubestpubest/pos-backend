@@ -237,28 +237,13 @@ func (h *menuItemHandler) DeleteMenuItem(c *gin.Context) {
 		return
 	}
 
-	// Get existing menu item to delete associated image
-	existingMenuItem, err := h.menuItemUsecase.GetMenuItemByID(id)
-	if err != nil {
-		err = errors.Wrap(err, "[MenuItemHandler.DeleteMenuItem]: Menu item not found")
-		log.Warn(err)
-		c.JSON(http.StatusNotFound, gin.H{"error": utils.StandardError(err)})
-		return
-	}
-
-	// Delete menu item from database
+	// Soft delete - just mark as deleted in database
+	// Image is kept in storage in case item needs to be restored
 	if err := h.menuItemUsecase.DeleteMenuItem(id); err != nil {
 		err = errors.Wrap(err, "[MenuItemHandler.DeleteMenuItem]: Error deleting menu item")
 		log.Warn(err)
 		c.JSON(http.StatusInternalServerError, gin.H{"error": utils.StandardError(err)})
 		return
-	}
-
-	// Delete associated image if exists
-	if existingMenuItem.ImageURL != "" {
-		if err := utils.DeleteImageFromMinio(h.minioClient, existingMenuItem.ImageURL); err != nil {
-			log.Warnf("[MenuItemHandler.DeleteMenuItem]: Failed to delete image: %v", err)
-		}
 	}
 
 	c.JSON(http.StatusOK, gin.H{"message": "Menu item deleted successfully"})

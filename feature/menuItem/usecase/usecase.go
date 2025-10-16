@@ -29,6 +29,7 @@ func (u *menuItemUsecase) GetAllMenuItems() ([]*response.MenuItemResponse, error
 		menuItemResponses[i] = &response.MenuItemResponse{
 			ID:        menuItem.ID,
 			Name:      utils.DerefString(menuItem.Name),
+			SKU:       utils.DerefString(menuItem.SKU),
 			PriceBaht: utils.DerefInt64(menuItem.PriceBaht),
 			Active:    utils.DerefBool(menuItem.Active),
 			ImageURL:  utils.DerefString(menuItem.ImageURL),
@@ -48,6 +49,7 @@ func (u *menuItemUsecase) GetMenuItemByID(id uuid.UUID) (*response.MenuItemRespo
 	return &response.MenuItemResponse{
 		ID:        menuItem.ID,
 		Name:      utils.DerefString(menuItem.Name),
+		SKU:       utils.DerefString(menuItem.SKU),
 		PriceBaht: utils.DerefInt64(menuItem.PriceBaht),
 		Active:    utils.DerefBool(menuItem.Active),
 		ImageURL:  utils.DerefString(menuItem.ImageURL),
@@ -77,6 +79,7 @@ func (u *menuItemUsecase) CreateMenuItem(req *request.MenuItemRequest) (*respons
 	return &response.MenuItemResponse{
 		ID:        menuItem.ID,
 		Name:      req.Name,
+		SKU:       req.SKU,
 		PriceBaht: req.PriceBaht,
 		Active:    active,
 		ImageURL:  utils.DerefString(req.ImageURL),
@@ -108,6 +111,7 @@ func (u *menuItemUsecase) UpdateMenuItem(id uuid.UUID, req *request.MenuItemRequ
 	return &response.MenuItemResponse{
 		ID:        menuItem.ID,
 		Name:      utils.DerefString(menuItem.Name),
+		SKU:       utils.DerefString(menuItem.SKU),
 		PriceBaht: utils.DerefInt64(menuItem.PriceBaht),
 		Active:    utils.DerefBool(menuItem.Active),
 		ImageURL:  utils.DerefString(menuItem.ImageURL),

@@ -201,6 +201,7 @@ The response format is the same, but now includes the MinIO URL:
 {
   "id": "76ea84b7-69da-48bb-bd4d-3a4881f9efcd",
   "name": "ข้าวหมูกรอบพริกเกลือ",
+  "sku": "MOU-ASD-PRI-3",
   "price_baht": 70,
   "active": true,
   "image_url": "http://localhost:9000/menu-images/uuid-timestamp.jpg",

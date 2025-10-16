@@ -67,19 +67,23 @@ The MenuItem endpoints have been changed from **JSON** to **multipart/form-data*
 
 **Endpoint:** `DELETE /v1/menu-items/:id`
 
-**Status:** ✅ **NO BREAKING CHANGE** (Enhanced)
+**Status:** ✅ **NO BREAKING CHANGE** (Enhanced - Soft Delete)
 
 **Changes:**
 
 - Same API signature
-- Now automatically deletes associated image from MinIO
+- Now uses **soft delete** (sets `deleted_at` timestamp instead of physical deletion)
+- No longer throws foreign key errors when item is in orders
+- Image is kept in MinIO (can be restored if needed)
 
 **Impact:**
 
 - ✅ No client changes required
-- ✅ Better cleanup (images deleted automatically)
+- ✅ Works even if item is referenced in orders
+- ✅ Better data preservation and audit trail
+- ⚠️ Database migration required (add `deleted_at` column)
 
-**Migration Required:** NO
+**Migration Required:** YES (Database only - see migrations/add_soft_delete_to_menu_items.sql)
 
 ---
 
@@ -248,6 +252,7 @@ const response = await fetch("/v1/menu-items", {
 {
   "id": "uuid",
   "name": "ข้าวหมูกรอบพริกเกลือ",
+  "sku": "MOU-ASD-PRI-3",
   "price_baht": 70,
   "active": true,
   "image_url": "",  // Usually empty or external URL
@@ -261,6 +266,7 @@ const response = await fetch("/v1/menu-items", {
 {
   "id": "uuid",
   "name": "ข้าวหมูกรอบพริกเกลือ",
+  "sku": "MOU-ASD-PRI-3",
   "price_baht": 70,
   "active": true,
   "image_url": "http://localhost:9000/menu-images/uuid-timestamp.jpg",  // MinIO URL
@@ -315,10 +321,23 @@ const response = await fetch("/v1/menu-items", {
   - Run `docker-compose up -d`
   - Verify MinIO is accessible
 
+- [ ] **Run Database Migration**
+
+  - Execute `migrations/add_soft_delete_to_menu_items.sql`
+  - Adds `deleted_at` column for soft delete
+  - Updates SKU unique constraint to exclude deleted records
+
 - [ ] **Test Image Upload**
+
   - Create menu item with image
   - Update menu item with image
   - Verify image URLs work
+
+- [ ] **Test Soft Delete**
+  - Delete menu item that's in an order (should work now)
+  - Verify deleted items don't appear in GET requests
+  - Verify deleted items return 404 when accessed by ID
+  - Verify images are kept in MinIO
 
 ### Low Priority (Documentation)
 

@@ -157,6 +157,7 @@ Cookie: token=your-session-token
 {
   "id": "76ea84b7-69da-48bb-bd4d-3a4881f9efcd",
   "name": "ข้าวหมูกรอบพริกเกลือ",
+  "sku": "MOU-ASD-PRI-3",
   "price_baht": 70,
   "active": true,
   "image_url": "http://localhost:9000/menu-images/550e8400-1234-5678-9012-1697486400.jpg",
