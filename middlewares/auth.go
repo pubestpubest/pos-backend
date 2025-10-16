@@ -34,6 +34,16 @@ func AuthMiddleware() gin.HandlerFunc {
 
 		// Set user in context
 		c.Set("userID", user.ID.String())
+
+		// Convert roles to response format
+		roles := make([]response.RoleResponse, len(user.Roles))
+		for i, role := range user.Roles {
+			roles[i] = response.RoleResponse{
+				ID:   role.ID,
+				Name: role.Name,
+			}
+		}
+
 		c.Set("user", response.UserResponse{
 			ID:       user.ID,
 			Username: user.Username,
@@ -41,6 +51,7 @@ func AuthMiddleware() gin.HandlerFunc {
 			Email:    user.Email,
 			Phone:    user.Phone,
 			Status:   user.Status,
+			Roles:    roles,
 		})
 
 		c.Next()

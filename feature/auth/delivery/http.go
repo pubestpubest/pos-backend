@@ -1,7 +1,6 @@
 package delivery
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -102,10 +101,8 @@ func (h *authHandler) GetMe(c *gin.Context) {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "Unauthorized"})
 		return
 	}
-	fmt.Println("Get user passed")
 	// Get user permissions
 	userID := c.GetString("userID")
-	fmt.Println("userID: ", userID)
 	uuid, err := uuid.Parse(userID)
 	if err != nil {
 		log.Warn("[AuthHandler.GetMe]: Invalid user ID")
